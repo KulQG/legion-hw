@@ -1,0 +1,10 @@
+#!/bin/sh
+
+echo "Running linter before commit..."
+
+pnpm run lint
+
+if [ $? -ne 0 ]; then
+  echo "Linter failed! Commit aborted."
+  exit 1
+fi
