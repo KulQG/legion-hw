@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common';
-import { PrismaService } from '../prisma/prisma.service';
+import { PrismaService } from '../providers/prisma/prisma.service';
 import { Prisma } from '../generated/prisma/client';
 import { FindUsersQueryDTO } from './dto/find-users-query.dto';
-import { createPaginatedResponse } from '../additional/helpers/create-paginated-response';
+import { createPaginatedResponse } from '../common/helpers/create-paginated-response';
 
 @Injectable()
 export class UsersService {
