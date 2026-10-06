@@ -1,7 +1,7 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
-import { RedisService } from '../../redis/redis.service';
+import { RedisService } from '../../providers/redis/redis.service';
 import { randomUUID } from 'node:crypto';
 
 type JwtAccessPayload = { sub: string; email: string };

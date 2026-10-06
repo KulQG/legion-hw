@@ -3,9 +3,9 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { ConfigModule } from '@nestjs/config';
 import { UsersModule } from './users/users.module';
-import { PrismaModule } from './prisma/prisma.module';
+import { PrismaModule } from './providers/prisma/prisma.module';
 import { AuthModule } from './auth/auth.module';
-import { RedisModule } from './redis/redis.module';
+import { RedisModule } from './providers/redis/redis.module';
 
 @Module({
   imports: [

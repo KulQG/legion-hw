@@ -19,7 +19,7 @@ import { Request, Response } from 'express';
 import { PatchUserDTO } from './dto/patch-user.dto';
 import { ApiResponse } from '@nestjs/swagger';
 import { UserEntity } from './entities/user.entity';
-import { PaginatedEntity } from '../additional/dto/paginated.entity';
+import { PaginatedEntity } from '../common/dto/paginated.entity';
 import { FindUsersQueryDTO } from './dto/find-users-query.dto';
 
 @UseGuards(JwtAuthGuard)
