@@ -21,7 +21,6 @@ import { ApiResponse } from '@nestjs/swagger';
 import { UserEntity } from './entities/user.entity';
 import { PaginatedEntity } from '../common/dto/paginated.entity';
 import { FindUsersQueryDTO } from './dto/find-users-query.dto';
-
 @UseGuards(JwtAuthGuard)
 @Controller('users')
 export class UsersController {

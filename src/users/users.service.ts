@@ -30,6 +30,7 @@ export class UsersService {
   async findOne(id: string) {
     return await this.repository.soft.user.findUnique({
       where: { id },
+      include: { avatars: { where: { deleted: false } } },
       omit: { passwordHash: true },
     });
   }

@@ -11,7 +11,7 @@ export const redisProvider: Provider = {
   inject: [ConfigService],
   useFactory: async (configService: ConfigService) => {
     const client = createClient({
-      url: configService.get<string>('REDIS_URL')!,
+      url: configService.getOrThrow<string>('REDIS_URL'),
     });
 
     client.on('error', (err) => console.error('Redis Client Error', err));

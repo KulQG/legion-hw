@@ -20,6 +20,9 @@ export class UserEntity implements Omit<
   @ApiProperty({ example: 'John' })
   name!: string;
 
+  @ApiProperty({ example: ['link1', 'link2'] })
+  avatars!: string[];
+
   @ApiProperty({ example: '2026-10-02T10:00:00.000Z' })
   createdAt!: Date;
 

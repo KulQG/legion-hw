@@ -8,14 +8,25 @@ datasource db {
 }
 
 model User {
-  id           String   @id @default(uuid(7)) @db.Uuid
-  email        String   @unique
+  id           String    @id @default(uuid(7)) @db.Uuid
+  email        String    @unique
   name         String
-  bio          String?  @db.VarChar(1000)
+  bio          String?   @db.VarChar(1000)
   age          Int
   passwordHash String
-  deleted      Boolean  @default(false)
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
-  deletedAt    DateTime? 
+  deleted      Boolean   @default(false)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  deletedAt    DateTime?
+  avatars      Avatar[]
+}
+
+model Avatar {
+  id        String    @id
+  createdAt DateTime  @default(now())
+  deleted   Boolean   @default(false)
+  deletedAt DateTime?
+
+  user   User?   @relation(fields: [userId], references: [id])
+  userId String? @db.Uuid
 }

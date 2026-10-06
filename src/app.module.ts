@@ -6,6 +6,7 @@ import { UsersModule } from './users/users.module';
 import { PrismaModule } from './providers/prisma/prisma.module';
 import { AuthModule } from './auth/auth.module';
 import { RedisModule } from './providers/redis/redis.module';
+import { FilesModule } from './providers/files/files.module';
 
 @Module({
   imports: [
@@ -14,6 +15,7 @@ import { RedisModule } from './providers/redis/redis.module';
     AuthModule,
     ConfigModule.forRoot({ isGlobal: true }),
     RedisModule,
+    FilesModule,
   ],
   controllers: [AppController],
   providers: [AppService],
