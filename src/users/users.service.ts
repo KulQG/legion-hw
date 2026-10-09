@@ -28,20 +28,20 @@ export class UsersService {
   }
 
   async findOne(id: string) {
-    return await this.repository.soft.user.findUnique({
+    return this.repository.soft.user.findUnique({
       where: { id },
       omit: { passwordHash: true },
     });
   }
 
   async findForLogin(email: string) {
-    return await this.repository.user.findUnique({
+    return this.repository.soft.user.findUnique({
       where: { email },
     });
   }
 
   async update(id: string, updateUserDto: Omit<Prisma.UserUpdateInput, 'id'>) {
-    return await this.repository.user.update({
+    return this.repository.user.update({
       where: { id },
       data: updateUserDto,
       omit: { passwordHash: true },
@@ -49,13 +49,15 @@ export class UsersService {
   }
 
   async create(user: Prisma.UserCreateInput) {
-    return await this.repository.user.create({ data: user });
+    return this.repository.user.create({ data: user });
   }
 
   async delete(userId: string) {
-    await this.repository.user.update({
-      where: { id: userId },
-      data: { deleted: true, deletedAt: new Date().toISOString() },
-    });
+    await this.repository.$executeRaw`
+      UPDATE "User"
+      SET email = 'deleted:' || id || ':' || email,
+          "deletedAt" = NOW()
+      WHERE id = ${userId} AND "deletedAt" IS NULL
+    `;
   }
 }

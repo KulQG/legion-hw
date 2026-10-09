@@ -1,23 +1,18 @@
 import { Provider } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { createClient } from 'redis';
+import Redis from 'ioredis';
 
-export type RedisClient = ReturnType<typeof createClient>;
+export type RedisClient = Redis;
 
-export const REDIS_CLIENT = 'REDIS_CLIENT';
+export const REDIS_CLIENT = Symbol('REDIS_CLIENT');
 
 export const redisProvider: Provider = {
   provide: REDIS_CLIENT,
   inject: [ConfigService],
-  useFactory: async (configService: ConfigService) => {
-    const client = createClient({
-      url: configService.get<string>('REDIS_URL')!,
-    });
+  useFactory: (configService: ConfigService) => {
+    const client = new Redis(configService.getOrThrow<string>('REDIS_URL'));
 
     client.on('error', (err) => console.error('Redis Client Error', err));
-
-    await client.connect();
-
     client.on('connect', () => console.log('Redis is connected'));
 
     return client;

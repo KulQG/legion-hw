@@ -6,17 +6,17 @@ import {
   Param,
   UseGuards,
   Delete,
-  HttpCode,
   Req,
   Res,
   Query,
+  NotFoundException,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { JwtAuthGuard } from '../auth/auth.guard';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import { LogoutService } from '../auth/services/logout.service';
 import { Request, Response } from 'express';
-import { PatchUserDTO } from './dto/patch-user.dto';
+import { EditUserDTO } from './dto/edit-user.dto';
 import { ApiResponse } from '@nestjs/swagger';
 import { UserEntity } from './entities/user.entity';
 import { PaginatedEntity } from '../common/dto/paginated.entity';
@@ -44,16 +44,14 @@ export class UsersController {
 
   @Patch('me')
   @ApiResponse({ type: UserEntity })
-  @HttpCode(204)
   async update(
     @CurrentUser() user: { userId: string },
-    @Body() updateUserDto: PatchUserDTO,
+    @Body() updateUserDto: EditUserDTO,
   ) {
     return await this.usersService.update(user.userId, updateUserDto);
   }
 
   @Delete('me')
-  @HttpCode(204)
   async delete(
     @CurrentUser() user: { userId: string },
     @Req() req: Request,
@@ -65,7 +63,9 @@ export class UsersController {
 
   @Get(':id')
   @ApiResponse({ type: UserEntity })
-  findOne(@Param('id') id: string) {
-    return this.usersService.findOne(id);
+  async findOne(@Param('id') id: string) {
+    const res = await this.usersService.findOne(id);
+    if (!res) throw new NotFoundException('User not found');
+    return res;
   }
 }
