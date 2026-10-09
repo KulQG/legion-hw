@@ -80,12 +80,9 @@ export class TokensService {
 
     const redisKey = this.generateRefreshTokenKey(userId, jti);
 
-    const isSessionValid = await this.redisService.get(redisKey);
+    const session = await this.redisService.getdel(redisKey);
 
-    if (!isSessionValid)
-      throw new UnauthorizedException('Session is not valid');
-
-    await this.redisService.del(redisKey);
+    if (!session) throw new UnauthorizedException('Session is not valid');
 
     return await this.generateTokens(userId, email);
   }

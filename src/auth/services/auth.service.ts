@@ -1,4 +1,8 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import {
+  ConflictException,
+  Injectable,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { UsersService } from '../../users/users.service';
 import * as bcrypt from 'bcrypt';
 import { LoginDto } from '../dto/login.dto';
@@ -16,6 +20,12 @@ export class AuthService {
 
   async registerUser(registerData: RegisterDTO) {
     const { password, ...userInfo } = registerData;
+
+    const foundUser = await this.usersService.findForLogin(userInfo.email);
+
+    if (foundUser) {
+      throw new ConflictException('User is already exist');
+    }
 
     const passwordHash = await bcrypt.hash(password, 10);
 
@@ -35,6 +45,7 @@ export class AuthService {
     if (!isValidPassword)
       throw new UnauthorizedException(INVALID_LOGIN_MESSAGE);
 
+    console.log('login correct', { deleted_at: foundUser.deletedAt });
     return await this.tokensService.generateTokens(
       foundUser.id,
       foundUser.email,

@@ -5,7 +5,6 @@ import {
   Res,
   Req,
   UnauthorizedException,
-  Get,
   UseGuards,
 } from '@nestjs/common';
 import { AuthService } from './services/auth.service';
@@ -66,7 +65,7 @@ export class AuthController {
   }
 
   @UseGuards(JwtAuthGuard)
-  @Get('/logout')
+  @Post('/logout')
   async logout(@Req() req: Request, @Res({ passthrough: true }) res: Response) {
     await this.logoutService.logoutUser(req, res);
   }
