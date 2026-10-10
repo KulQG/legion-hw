@@ -5,8 +5,8 @@ export class UserEntity implements Omit<
   User,
   'deleted' | 'deletedAt' | 'passwordHash'
 > {
-  @ApiProperty({ example: 20 })
-  age!: number;
+  @ApiProperty({ example: '2026-10-02T10:00:00.000Z' })
+  birthDate!: Date;
 
   @ApiProperty({ example: 'I love cats' })
   bio!: string | null;
@@ -20,7 +20,13 @@ export class UserEntity implements Omit<
   @ApiProperty({ example: 'John' })
   name!: string;
 
-  @ApiProperty({ example: ['link1', 'link2'] })
+  @ApiProperty({ example: '018f3a5a-7b3b-7123-8123-456789abcdef' })
+  currentAvatar!: string;
+
+  @ApiProperty({ example: 0 })
+  activeAvatarsCount!: number;
+
+  @ApiProperty({ example: ['018f3a5a-7b3b-7123-8123-456789abcdef'] })
   avatars!: string[];
 
   @ApiProperty({ example: '2026-10-02T10:00:00.000Z' })

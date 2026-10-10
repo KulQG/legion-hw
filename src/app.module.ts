@@ -7,15 +7,31 @@ import { PrismaModule } from './providers/prisma/prisma.module';
 import { AuthModule } from './auth/auth.module';
 import { RedisModule } from './providers/redis/redis.module';
 import { FilesModule } from './providers/files/files.module';
+import { AvatarsModule } from './avatars/avatars.module';
+import { ClsModule } from 'nestjs-cls';
+import { Request } from 'express';
+import { LoggerModule } from 'nestjs-pino';
+import { getRequestId } from './common/helpers/get-request-id';
+import { LOGGER_CONFIG } from './common/configs/logger-config';
 
 @Module({
   imports: [
+    ClsModule.forRoot({
+      global: true,
+      middleware: {
+        mount: true,
+        generateId: true,
+        idGenerator: getRequestId,
+      },
+    }),
+    LoggerModule.forRoot(LOGGER_CONFIG),
+    ConfigModule.forRoot({ isGlobal: true }),
     UsersModule,
     PrismaModule,
     AuthModule,
-    ConfigModule.forRoot({ isGlobal: true }),
     RedisModule,
     FilesModule,
+    AvatarsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

@@ -1,8 +1,9 @@
 import {
+  Controller,
   Delete,
-  HttpCode,
+  Get,
   Inject,
-  Injectable,
+  NotFoundException,
   Param,
   Post,
   UploadedFile,
@@ -20,13 +21,20 @@ import { JwtAuthGuard } from '../auth/auth.guard';
 import { checkFileOnImage } from '../common/helpers/filter-file-by-extension';
 
 @UseGuards(JwtAuthGuard)
-@Injectable()
+@Controller('avatars')
 export class AvatarsController {
   constructor(
     @Inject() private readonly fileService: IFileService,
     private readonly imageService: ImageService,
     private readonly avatarsService: AvatarsService,
   ) {}
+
+  @Get()
+  async getAvatars(@CurrentUser() user: { userId: string }) {
+    const avatars = await this.avatarsService.getUserAvatars(user.userId);
+    if (!avatars.length) throw new NotFoundException('No avatars yet');
+    return avatars;
+  }
 
   @Post()
   @ApiResponse({ type: String })
@@ -53,8 +61,10 @@ export class AvatarsController {
   }
 
   @Delete(':id')
-  @HttpCode(204)
-  async delete(@Param('id') id: string) {
-    await this.avatarsService.delete(id);
+  async delete(
+    @CurrentUser() user: { userId: string },
+    @Param('id') id: string,
+  ) {
+    await this.avatarsService.delete(id, user.userId);
   }
 }

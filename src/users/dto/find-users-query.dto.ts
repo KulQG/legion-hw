@@ -40,7 +40,8 @@ export class FindUsersQueryDTO {
   search?: string;
 
   @ApiPropertyOptional({
-    description: 'Поиск по самым активным юзерам',
+    description:
+      'Поиск по самым активным юзерам. Вернет тех, у кого больше 2 активных аватаров и заполнено био',
   })
   @Type(() => Boolean)
   @IsOptional()
