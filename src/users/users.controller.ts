@@ -10,6 +10,7 @@ import {
   Res,
   Query,
   NotFoundException,
+  UseInterceptors,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { JwtAuthGuard } from '../auth/auth.guard';
@@ -21,8 +22,11 @@ import { ApiResponse } from '@nestjs/swagger';
 import { UserEntity } from './entities/user.entity';
 import { PaginatedEntity } from '../common/dto/paginated.entity';
 import { FindUsersQueryDTO } from './dto/find-users-query.dto';
+import { CacheInterceptor } from '@nestjs/cache-manager';
+
 @UseGuards(JwtAuthGuard)
 @Controller('users')
+@UseInterceptors(CacheInterceptor)
 export class UsersController {
   constructor(
     private readonly usersService: UsersService,

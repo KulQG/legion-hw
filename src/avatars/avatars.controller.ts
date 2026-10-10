@@ -19,9 +19,11 @@ import { ImageService } from '../providers/files/images.service';
 import { AvatarsService } from './avatars.service';
 import { JwtAuthGuard } from '../auth/auth.guard';
 import { checkFileOnImage } from '../common/helpers/filter-file-by-extension';
+import { CacheInterceptor } from '@nestjs/cache-manager';
 
 @UseGuards(JwtAuthGuard)
 @Controller('avatars')
+@UseInterceptors(CacheInterceptor)
 export class AvatarsController {
   constructor(
     @Inject() private readonly fileService: IFileService,
