@@ -1,5 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { User } from '../../generated/prisma/client';
+import { Decimal } from '@prisma/client/runtime/client';
 
 export class UserEntity implements Omit<
   User,
@@ -34,4 +35,7 @@ export class UserEntity implements Omit<
 
   @ApiProperty({ example: '2026-10-02T10:00:00.000Z' })
   updatedAt!: Date;
+
+  @ApiProperty({ example: '100.00' })
+  balance!: Decimal;
 }

@@ -14,6 +14,7 @@ import { getRequestId } from './common/helpers/get-request-id';
 import { LOGGER_CONFIG } from './common/configs/logger-config';
 import { CacheModule } from '@nestjs/cache-manager';
 import { createKeyv } from '@keyv/redis';
+import { TransfersModule } from './transfers/transfers.module';
 
 @Module({
   imports: [
@@ -41,6 +42,7 @@ import { createKeyv } from '@keyv/redis';
     RedisModule,
     FilesModule,
     AvatarsModule,
+    TransfersModule,
   ],
   controllers: [AppController],
   providers: [AppService],
