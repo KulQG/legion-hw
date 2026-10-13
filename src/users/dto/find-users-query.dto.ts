@@ -1,6 +1,13 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
-import { IsOptional, IsInt, Min, IsString, Max } from 'class-validator';
+import {
+  IsOptional,
+  IsInt,
+  Min,
+  IsString,
+  Max,
+  IsBoolean,
+} from 'class-validator';
 
 export class FindUsersQueryDTO {
   @ApiPropertyOptional({
@@ -31,4 +38,27 @@ export class FindUsersQueryDTO {
   @IsOptional()
   @IsString()
   search?: string;
+
+  @ApiPropertyOptional({
+    description:
+      'Поиск по самым активным юзерам. Вернет тех, у кого больше 2 активных аватаров и заполнено био',
+  })
+  @Type(() => Boolean)
+  @IsOptional()
+  @IsBoolean()
+  isActive?: boolean;
+
+  @ApiPropertyOptional({ example: 21 })
+  @Type(() => Number)
+  @IsOptional()
+  @IsInt()
+  @Min(0)
+  minAge?: number;
+
+  @ApiPropertyOptional({ example: 21 })
+  @Type(() => Number)
+  @IsOptional()
+  @IsInt()
+  @Min(0)
+  maxAge?: number;
 }

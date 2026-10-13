@@ -8,6 +8,7 @@ import * as bcrypt from 'bcrypt';
 import { LoginDto } from '../dto/login.dto';
 import { RegisterDTO } from '../dto/register.dto';
 import { TokensService } from './tokens.service';
+import { PinoLogger } from 'nestjs-pino';
 
 const INVALID_LOGIN_MESSAGE = 'email or password is incorrect';
 
@@ -16,7 +17,10 @@ export class AuthService {
   constructor(
     private readonly usersService: UsersService,
     private readonly tokensService: TokensService,
-  ) {}
+    private readonly logger: PinoLogger,
+  ) {
+    this.logger.setContext(AuthService.name);
+  }
 
   async registerUser(registerData: RegisterDTO) {
     const { password, ...userInfo } = registerData;
@@ -24,28 +28,40 @@ export class AuthService {
     const foundUser = await this.usersService.findForLogin(userInfo.email);
 
     if (foundUser) {
+      this.logger.warn(
+        `[register]: user [${foundUser.email}] already exists: id [${foundUser.id}]`,
+      );
       throw new ConflictException('User is already exist');
     }
 
     const passwordHash = await bcrypt.hash(password, 10);
 
-    await this.usersService.create({ ...userInfo, passwordHash });
+    await this.usersService.create({
+      ...userInfo,
+      passwordHash,
+    });
   }
 
   async loginUser(loginData: LoginDto) {
     const foundUser = await this.usersService.findForLogin(loginData.email);
 
-    if (!foundUser) throw new UnauthorizedException(INVALID_LOGIN_MESSAGE);
+    if (!foundUser) {
+      this.logger.warn(`[login] user [${loginData.email}] not found`);
+      throw new UnauthorizedException(INVALID_LOGIN_MESSAGE);
+    }
 
     const isValidPassword = await bcrypt.compare(
       loginData.password,
       foundUser.passwordHash,
     );
 
-    if (!isValidPassword)
+    if (!isValidPassword) {
+      this.logger.warn(
+        `[login] invalid password for user [${foundUser.email}]`,
+      );
       throw new UnauthorizedException(INVALID_LOGIN_MESSAGE);
+    }
 
-    console.log('login correct', { deleted_at: foundUser.deletedAt });
     return await this.tokensService.generateTokens(
       foundUser.id,
       foundUser.email,

@@ -1,6 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { PROPERTY_EXAMPLES } from '../../common/constants';
 
 export class LoginEntity {
-  @ApiProperty({ example: '018f3a5a-7b3b-7123-8123-456789abcdef' })
+  @ApiProperty({ example: PROPERTY_EXAMPLES.uuid })
   access_token!: string;
 }
