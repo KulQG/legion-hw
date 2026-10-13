@@ -1,41 +1,42 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { User } from '../../generated/prisma/client';
 import { Decimal } from '@prisma/client/runtime/client';
+import { PROPERTY_EXAMPLES } from '../../common/constants';
 
 export class UserEntity implements Omit<
   User,
   'deleted' | 'deletedAt' | 'passwordHash'
 > {
-  @ApiProperty({ example: '2026-10-02T10:00:00.000Z' })
+  @ApiProperty({ example: PROPERTY_EXAMPLES.date })
   birthDate!: Date;
 
   @ApiProperty({ example: 'I love cats' })
   bio!: string | null;
 
-  @ApiProperty({ example: 'example@mail.com' })
+  @ApiProperty({ example: PROPERTY_EXAMPLES.mail })
   email!: string;
 
-  @ApiProperty({ example: '018f3a5a-7b3b-7123-8123-456789abcdef' })
+  @ApiProperty({ example: PROPERTY_EXAMPLES.uuid })
   id!: string;
 
-  @ApiProperty({ example: 'John' })
+  @ApiProperty({ example: PROPERTY_EXAMPLES.name })
   name!: string;
 
-  @ApiProperty({ example: '018f3a5a-7b3b-7123-8123-456789abcdef' })
+  @ApiProperty({ example: PROPERTY_EXAMPLES.uuid })
   currentAvatar!: string;
 
   @ApiProperty({ example: 0 })
   activeAvatarsCount!: number;
 
-  @ApiProperty({ example: ['018f3a5a-7b3b-7123-8123-456789abcdef'] })
+  @ApiProperty({ example: [PROPERTY_EXAMPLES.uuid] })
   avatars!: string[];
 
-  @ApiProperty({ example: '2026-10-02T10:00:00.000Z' })
+  @ApiProperty({ example: PROPERTY_EXAMPLES.date })
   createdAt!: Date;
 
-  @ApiProperty({ example: '2026-10-02T10:00:00.000Z' })
+  @ApiProperty({ example: PROPERTY_EXAMPLES.date })
   updatedAt!: Date;
 
-  @ApiProperty({ example: '100.00' })
+  @ApiProperty({ example: PROPERTY_EXAMPLES.money })
   balance!: Decimal;
 }

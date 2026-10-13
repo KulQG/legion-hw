@@ -34,7 +34,10 @@ export class TransfersService {
         FOR UPDATE
       `;
 
-      if (users.length !== 2) throw new NotFoundException('user not found');
+      if (users.length !== 2) {
+        this.logger.error('[create transfer]: user not found');
+        throw new NotFoundException('user not found');
+      }
 
       const { count } = await tx.transfer.createMany({
         data: {

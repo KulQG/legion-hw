@@ -4,6 +4,9 @@ import { JwtAuthGuard } from '../auth/auth.guard';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import { CreateTransferDTO } from './dto/create-transfer.dto';
 import { Decimal } from '../generated/prisma/internal/prismaNamespace';
+import { ApiResponse } from '@nestjs/swagger';
+import { TransferEntity } from './entities/transfer.entity';
+import { USER_FROM_TOKEN } from '../common/types';
 
 @UseGuards(JwtAuthGuard)
 @Controller('transfers')
@@ -11,8 +14,9 @@ export class TransfersController {
   constructor(private readonly transfersService: TransfersService) {}
 
   @Post()
+  @ApiResponse({ type: TransferEntity })
   async transfer(
-    @CurrentUser() user: { userId: string },
+    @CurrentUser() user: USER_FROM_TOKEN,
     @Headers('idempotency-key') key: string,
     @Body() dto: CreateTransferDTO,
   ) {

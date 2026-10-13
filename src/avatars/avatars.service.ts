@@ -27,6 +27,7 @@ export class AvatarsService {
     const avatars = await this.repository.soft.avatar.findMany({
       where: { userId },
       orderBy: { createdAt: 'desc' },
+      omit: { deletedAt: true },
     });
 
     if (!avatars.length) throw new NotFoundException('No avatars yet');
