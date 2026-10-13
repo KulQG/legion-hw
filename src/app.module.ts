@@ -15,6 +15,9 @@ import { LOGGER_CONFIG } from './common/configs/logger-config';
 import { CacheModule } from '@nestjs/cache-manager';
 import { createKeyv } from '@keyv/redis';
 import { TransfersModule } from './transfers/transfers.module';
+import { AvatarCleanupModule } from './avatar-cleanup/avatar-cleanup.module';
+import { BullModule } from '@nestjs/bullmq';
+import { ScheduleModule } from '@nestjs/schedule';
 
 @Module({
   imports: [
@@ -30,10 +33,19 @@ import { TransfersModule } from './transfers/transfers.module';
       isGlobal: true,
       inject: [ConfigService],
       useFactory: (config: ConfigService) => ({
-        stores: [createKeyv(config.get('REDIS_URL'), { namespace: 'cache' })],
+        stores: [
+          createKeyv(config.getOrThrow('REDIS_URL'), { namespace: 'cache' }),
+        ],
         ttl: 30_000,
       }),
     }),
+    BullModule.forRootAsync({
+      inject: [ConfigService],
+      useFactory: (config: ConfigService) => ({
+        connection: config.getOrThrow('REDIS_URL'),
+      }),
+    }),
+    ScheduleModule.forRoot(),
     LoggerModule.forRoot(LOGGER_CONFIG),
     ConfigModule.forRoot({ isGlobal: true }),
     UsersModule,
@@ -43,6 +55,7 @@ import { TransfersModule } from './transfers/transfers.module';
     FilesModule,
     AvatarsModule,
     TransfersModule,
+    AvatarCleanupModule,
   ],
   controllers: [AppController],
   providers: [AppService],
