@@ -20,48 +20,66 @@ export class AvatarCleanupService {
     @Inject() private readonly fileService: IFileService,
     private readonly repository: PrismaService,
     private readonly logger: PinoLogger,
-  ) {}
+  ) {
+    this.logger.setContext(AvatarCleanupService.name);
+  }
 
   @Cron('0 0 3 * * 1-7')
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-call
   @OnOneInstance({ key: 'nightly-cleanup' })
-  async startCleanUp() {
-    await this.queue.add(CLEANUP_TASK_NAME, null);
+  async addCleanupTask() {
+    await this.queue.add(CLEANUP_TASK_NAME, null, {
+      deduplication: { id: 'avatar-cleanup' },
+      attempts: 5,
+      backoff: {
+        type: 'exponential',
+        delay: 30_000,
+      },
+      removeOnComplete: true,
+      removeOnFail: false,
+    });
     this.logger.info('cleanup task added');
   }
 
   async cleanUp() {
     const threshold = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
 
-    const deletedAvatars = await this.repository.avatar.findMany({
-      select: { id: true },
-      where: { deletedAt: { lte: threshold } },
-      orderBy: { deletedAt: 'asc' },
-      take: CLEANUP_BATCH_SIZE,
-    });
-
-    if (!deletedAvatars.length) return;
-
-    const deletedAvatarsIds = deletedAvatars.map((da) => da.id);
-
-    const { failed } = await this.fileService.removeFiles({
-      paths: deletedAvatarsIds,
-    });
-
-    const removedIds = deletedAvatarsIds.filter((id) => !failed.has(id));
-
-    if (removedIds.length) {
-      await this.repository.avatar.deleteMany({
-        where: { id: { in: removedIds }, deletedAt: { lte: threshold } },
+    while (true) {
+      const avatars = await this.repository.avatar.findMany({
+        select: { id: true, userId: true },
+        where: { deletedAt: { lte: threshold } },
+        orderBy: [{ deletedAt: 'asc' }, { id: 'asc' }],
+        take: CLEANUP_BATCH_SIZE,
       });
-    }
 
-    if (failed.size) {
-      throw new Error(`[cleanup task]: ${failed.size} files were not deleted`);
-    }
+      if (!avatars.length) return;
 
-    if (deletedAvatarsIds.length === CLEANUP_BATCH_SIZE) {
-      await this.startCleanUp();
+      const paths = avatars.map(({ userId, id }) => `${userId}/${id}`);
+      const { failed } = await this.fileService.removeFiles({ paths });
+
+      const removedIds: string[] = [];
+
+      for (const { id, userId } of avatars) {
+        if (!failed.has(`${userId}/${id}`)) {
+          removedIds.push(id);
+        }
+      }
+
+      if (removedIds.length) {
+        await this.repository.avatar.deleteMany({
+          where: {
+            id: { in: removedIds },
+            deletedAt: { lte: threshold },
+          },
+        });
+      }
+
+      if (failed.size) {
+        throw new Error(
+          `[cleanup task]: ${failed.size} files were not deleted`,
+        );
+      }
+
+      if (avatars.length < CLEANUP_BATCH_SIZE) return;
     }
   }
 }

@@ -3,6 +3,7 @@ import {
   Delete,
   Get,
   Param,
+  ParseFilePipe,
   Post,
   UploadedFile,
   UseGuards,
@@ -42,7 +43,8 @@ export class AvatarsController {
   )
   async uploadAvatar(
     @CurrentUser() user: USER_FROM_TOKEN,
-    @UploadedFile() file: Express.Multer.File,
+    @UploadedFile(new ParseFilePipe({ fileIsRequired: true }))
+    file: Express.Multer.File,
   ) {
     return await this.avatarsService.create(user.userId, file);
   }

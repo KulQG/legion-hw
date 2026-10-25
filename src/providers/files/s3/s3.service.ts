@@ -90,13 +90,13 @@ export class S3Service extends IFileService {
 
     if (!res.Errors || res.Errors.length === 0) {
       this.logger.log('✅ Removing was successful');
-    }
-
-    for (const err of res.Errors!) {
-      this.logger.error(
-        `[s3 delete]: ${err.Key} failed: ${err.Code} ${err.Message}`,
-      );
-      if (err.Key) failed.add(err.Key);
+    } else {
+      for (const err of res.Errors) {
+        this.logger.error(
+          `[s3 delete]: ${err.Key} failed: ${err.Code} ${err.Message}`,
+        );
+        if (err.Key) failed.add(err.Key);
+      }
     }
 
     return { failed };

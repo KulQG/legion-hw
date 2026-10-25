@@ -12,7 +12,7 @@ export class AvatarCleanupConsumer extends WorkerHost {
     super();
   }
 
-  async process(job: Job): Promise<any> {
+  async process(job: Job): Promise<void> {
     if (job.name === CLEANUP_TASK_NAME) {
       await this.avatarCleanupService.cleanUp();
     }

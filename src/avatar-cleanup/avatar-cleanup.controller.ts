@@ -7,6 +7,6 @@ export class AvatarCleanupController {
 
   @Post()
   async startCleanAvatars() {
-    await this.avatarCleanupService.startCleanUp();
+    await this.avatarCleanupService.addCleanupTask();
   }
 }

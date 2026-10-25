@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  ConflictException,
   Injectable,
   NotFoundException,
   UnprocessableEntityException,
@@ -17,6 +18,27 @@ export class TransfersService {
     this.logger.setContext(TransfersService.name);
   }
 
+  private validateExistingTransfer(
+    transfer: {
+      fromAccountId: string;
+      toAccountId: string;
+      sum: Decimal;
+    },
+    userFrom: string,
+    userTo: string,
+    amount: Decimal,
+  ): void {
+    if (
+      transfer.fromAccountId !== userFrom ||
+      transfer.toAccountId !== userTo ||
+      !transfer.sum.eq(amount)
+    ) {
+      throw new ConflictException(
+        'Idempotency key already used with different parameters',
+      );
+    }
+  }
+
   async createTransfer(
     userFrom: string,
     userTo: string,
@@ -26,11 +48,21 @@ export class TransfersService {
     if (amount.lte(0)) throw new BadRequestException('Amount must be positive');
     if (userFrom === userTo) throw new BadRequestException('Same account');
 
-    await this.repository.$transaction(async (tx) => {
+    return this.repository.$transaction(async (tx) => {
+      const existing = await tx.transfer.findUnique({
+        where: { idempotencyKey },
+      });
+
+      if (existing) {
+        this.validateExistingTransfer(existing, userFrom, userTo, amount);
+        return;
+      }
+
       const users = await tx.$queryRaw<{ id: string }[]>`
-        SELECT id FROM "users" 
-        WHERE id IN (${userFrom}::uuid, ${userTo}:uuid) AND "deleted_at" IS NULL
-        ORDER BY id 
+        SELECT id FROM "users"
+        WHERE id IN (${userFrom}::uuid, ${userTo}::uuid)
+        AND "deleted_at" IS NULL
+        ORDER BY id
         FOR UPDATE
       `;
 
@@ -49,12 +81,20 @@ export class TransfersService {
         skipDuplicates: true,
       });
 
-      if (count === 0) return;
+      if (count === 0) {
+        const existing = await tx.transfer.findUniqueOrThrow({
+          where: { idempotencyKey },
+        });
+
+        this.validateExistingTransfer(existing, userFrom, userTo, amount);
+        return;
+      }
 
       const debit = await tx.user.updateMany({
         where: { id: userFrom, balance: { gte: amount } },
         data: { balance: { decrement: amount } },
       });
+
       if (debit.count === 0)
         throw new UnprocessableEntityException('Insufficient funds');
 
@@ -62,10 +102,10 @@ export class TransfersService {
         where: { id: userTo },
         data: { balance: { increment: amount } },
       });
-    });
 
-    return this.repository.transfer.findUniqueOrThrow({
-      where: { idempotencyKey },
+      return tx.transfer.findUniqueOrThrow({
+        where: { idempotencyKey },
+      });
     });
   }
 }
