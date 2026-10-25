@@ -1,10 +1,11 @@
+import { Type } from 'class-transformer';
 import {
+  IsDate,
   IsEmail,
-  IsInt,
   IsNotEmpty,
   IsOptional,
+  MaxDate,
   MaxLength,
-  Min,
 } from 'class-validator';
 
 export class RegisterDTO {
@@ -19,9 +20,10 @@ export class RegisterDTO {
   @MaxLength(20)
   password!: string;
 
-  @IsInt()
-  @Min(0)
-  age!: number;
+  @Type(() => Date)
+  @IsDate()
+  @MaxDate(() => new Date())
+  birthDate!: Date;
 
   @IsOptional()
   @MaxLength(1000)

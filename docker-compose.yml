@@ -21,6 +21,20 @@ services:
     volumes:
       - redisdata:/var/lib/redis/data
 
+  minio:
+    image: pgsty/minio:RELEASE.2026-06-18T00-00-00Z
+    command: server --console-address ":9001" /data
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - miniodata:/data
+    environment:
+       MINIO_ROOT_USER: minioadmin
+       MINIO_ROOT_PASSWORD: ${MINIO_PASSWORD}
+
 volumes:
   pgdata:
   redisdata:
+  miniodata:
+  
