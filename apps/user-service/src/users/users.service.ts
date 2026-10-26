@@ -2,8 +2,8 @@ import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../providers/prisma/prisma.service';
 import { Prisma } from '../generated/prisma/client';
 import { FindUsersQueryDTO } from './dto/find-users-query.dto';
-import { createPaginatedResponse } from '../common/helpers/create-paginated-response';
-import { getDateByYearsAgo } from '../common/helpers/get-date-by-years-ago';
+import { createPaginatedResponse } from '../../../../lib/common/helpers/create-paginated-response';
+import { getDateByYearsAgo } from '../../../../lib/common/helpers/get-date-by-years-ago';
 
 const ACTIVE_USERS_MIN_AVATARS_COUNT = 2;
 

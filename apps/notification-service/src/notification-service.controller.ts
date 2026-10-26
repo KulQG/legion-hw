@@ -1,14 +1,6 @@
-import { Controller, Get } from '@nestjs/common';
-import { NotificationServiceService } from './notification-service.service';
+import { Controller } from '@nestjs/common';
 
 @Controller()
 export class NotificationServiceController {
-  constructor(
-    private readonly notificationServiceService: NotificationServiceService,
-  ) {}
-
-  @Get()
-  getHello(): string {
-    return this.notificationServiceService.getHello();
-  }
+  constructor() {}
 }

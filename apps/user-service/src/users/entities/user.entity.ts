@@ -1,7 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { User } from '../../generated/prisma/client';
 import { Decimal } from '@prisma/client/runtime/client';
-import { PROPERTY_EXAMPLES } from '../../common/constants';
+import { PROPERTY_EXAMPLES } from '../../../../../lib/common/constants';
 
 export class UserEntity implements Omit<
   User,

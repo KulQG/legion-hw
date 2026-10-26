@@ -20,10 +20,10 @@ import { Request, Response } from 'express';
 import { EditUserDTO } from './dto/edit-user.dto';
 import { ApiResponse } from '@nestjs/swagger';
 import { UserEntity } from './entities/user.entity';
-import { PaginatedEntity } from '../common/dto/paginated.entity';
+import { PaginatedEntity } from '../../../../lib/common/dto/paginated.entity';
 import { FindUsersQueryDTO } from './dto/find-users-query.dto';
 import { CacheInterceptor } from '@nestjs/cache-manager';
-import { USER_FROM_TOKEN } from '../common/types';
+import { USER_FROM_TOKEN } from '../../../../lib/common/types';
 
 @UseGuards(JwtAuthGuard)
 @Controller('users')

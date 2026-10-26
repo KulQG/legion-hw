@@ -15,11 +15,11 @@ import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { AvatarsService } from './avatars.service';
 import { JwtAuthGuard } from '../auth/auth.guard';
-import { checkFileOnImage } from '../common/helpers/filter-file-by-extension';
+import { checkFileOnImage } from '../../../../lib/common/helpers/filter-file-by-extension';
 import { CacheInterceptor } from '@nestjs/cache-manager';
 import { UploadAvatarResultEntity } from './entities/upload-avatar-result.entity';
 import { AvatarEntity } from './entities/avatar.entity';
-import { USER_FROM_TOKEN } from '../common/types';
+import { USER_FROM_TOKEN } from '../../../../lib/common/types';
 
 @UseGuards(JwtAuthGuard)
 @Controller('avatars')

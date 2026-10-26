@@ -1,7 +1,7 @@
 import { Decimal } from '@prisma/client/runtime/client';
 import { Transfer } from '../../generated/prisma/client';
 import { ApiProperty } from '@nestjs/swagger';
-import { PROPERTY_EXAMPLES } from '../../common/constants';
+import { PROPERTY_EXAMPLES } from '../../../../../lib/common/constants';
 
 export class TransferEntity implements Transfer {
   @ApiProperty({ example: PROPERTY_EXAMPLES.uuid })

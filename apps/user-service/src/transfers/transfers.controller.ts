@@ -6,7 +6,7 @@ import { CreateTransferDTO } from './dto/create-transfer.dto';
 import { Decimal } from '../generated/prisma/internal/prismaNamespace';
 import { ApiResponse } from '@nestjs/swagger';
 import { TransferEntity } from './entities/transfer.entity';
-import { USER_FROM_TOKEN } from '../common/types';
+import { USER_FROM_TOKEN } from '../../../../lib/common/types';
 
 @UseGuards(JwtAuthGuard)
 @Controller('transfers')

@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Avatar } from '../../generated/prisma/client';
-import { PROPERTY_EXAMPLES } from '../../common/constants';
+import { PROPERTY_EXAMPLES } from '../../../../../lib/common/constants';
 
 export class AvatarEntity implements Omit<Avatar, 'deletedAt'> {
   @ApiProperty({ example: PROPERTY_EXAMPLES.uuid })
