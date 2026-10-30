@@ -6,19 +6,19 @@
   "private": true,
   "license": "UNLICENSED",
   "scripts": {
-    "build": "nest build",
-    "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
-    "start": "nest start",
-    "start:dev": "nest start --watch",
-    "start:debug": "nest start --debug --watch",
-    "start:prod": "node dist/main",
-    "lint": "eslint \"{src,apps,libs,test}/**/*.ts\"",
+    "format": "prettier --write \"apps/**/*.ts\" \"libs/**/*.ts\"",
+    "build:user": "nest build user-service",
+    "build:notification": "nest build notification-service",
+    "build:all": "npm run build:user && npm run build:notification",
+    "start:prod:user": "node dist/apps/user-service/apps/user-service/src/main.js",
+    "start:prod:notification": "node dist/apps/notification-service/apps/notification-service/src/main.js",
+    "lint": "eslint \"{src,apps,lib,test}/**/*.ts\"",
     "prepare": "git config core.hooksPath .git-hooks || echo 'Not in a git repo'",
     "test": "jest",
     "test:watch": "jest --watch",
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
-    "test:e2e": "jest --config ./test/jest-e2e.json"
+    "test:e2e": "jest --config ./apps/user-service/test/jest-e2e.json"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1146.0",
@@ -31,10 +31,13 @@
     "@nestjs/jwt": "^12.0.2",
     "@nestjs/locks": "^0.0.3",
     "@nestjs/mapped-types": "*",
+    "@nestjs/microservices": "11.2.7",
     "@nestjs/passport": "^12.0.0",
     "@nestjs/platform-express": "^11.0.1",
+    "@nestjs/platform-socket.io": "11.2.7",
     "@nestjs/schedule": "^12.0.2",
     "@nestjs/swagger": "11.0.0",
+    "@nestjs/websockets": "11.2.7",
     "@prisma/adapter-pg": "^7.10.0",
     "@prisma/client": "^7.10.0",
     "bcrypt": "^6.0.0",
@@ -44,6 +47,8 @@
     "class-validator": "^0.15.1",
     "cookie-parser": "^1.4.7",
     "ioredis": "^6.0.0",
+    "kafkajs": "^2.2.4",
+    "multer": "^2.5.0",
     "nestjs-cls": "^7.0.1",
     "nestjs-pino": "^5.3.1",
     "passport": "^0.7.0",
@@ -52,7 +57,8 @@
     "pino-http": "^11.0.0",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.1",
-    "sharp": "^0.35.5"
+    "sharp": "^0.35.5",
+    "socket.io": "^4.8.4"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.2.0",
@@ -95,7 +101,7 @@
       "json",
       "ts"
     ],
-    "rootDir": "src",
+    "rootDir": ".",
     "testRegex": ".*\\.spec\\.ts$",
     "transform": {
       "^.+\\.(t|j)s$": "ts-jest"
@@ -103,8 +109,11 @@
     "collectCoverageFrom": [
       "**/*.(t|j)s"
     ],
-    "coverageDirectory": "../coverage",
-    "testEnvironment": "node"
+    "coverageDirectory": "./coverage",
+    "testEnvironment": "node",
+    "roots": [
+      "<rootDir>/apps/"
+    ]
   },
   "packageManager": "pnpm@12.8.1+sha512.f64ba907507f5ceafe06c8d38e6052d0179444580ec1279ddd5bfc11cb48aa8a2644b66598e07e761da84872a9fc57d5f902b87fa49d024198d558612aabbe45"
 }
