@@ -4,6 +4,7 @@ import { TransfersController } from './transfers.controller';
 import { ClientsModule, Transport } from '@nestjs/microservices';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TRANSFERS_KAFKA_NAME } from './constants';
+import { OutboxPublisherService } from './outbox-publisher.service';
 
 @Module({
   imports: [
@@ -28,6 +29,6 @@ import { TRANSFERS_KAFKA_NAME } from './constants';
     }),
   ],
   controllers: [TransfersController],
-  providers: [TransfersService],
+  providers: [TransfersService, OutboxPublisherService],
 })
 export class TransfersModule {}

@@ -61,3 +61,16 @@ model Transfer {
   @@index([fromAccountId, id(sort: Desc)])
   @@map("transfers")
 }
+
+model Outbox {
+  id          Int       @id @default(autoincrement())
+  topic       String
+  payload     Json
+  createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamptz(3)
+  processedAt DateTime? @map("processed_at") @db.Timestamptz(3)
+  claimId     String?   @map("claim_id") @db.Uuid
+  lockedUntil DateTime? @map("locked_until") @db.Timestamptz(3)
+
+  @@index([id(sort: Asc)], where: raw("processed_at IS NULL"))
+  @@map("outbox")
+}

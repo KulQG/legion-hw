@@ -5,3 +5,5 @@ export const PROPERTY_EXAMPLES = {
   mail: 'example@mail.com',
   name: 'John',
 } as const;
+
+export const KAFKA_TRANSFERS_TOPIC = 'transfers';

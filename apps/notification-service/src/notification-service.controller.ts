@@ -1,10 +1,11 @@
 import { Controller } from '@nestjs/common';
 import { EventPattern, Payload } from '@nestjs/microservices';
-import { TransferEventDto } from './dto/transfer-event.dto';
+import { TransferEventDto } from '../../../lib/common/dto/transfer-event.dto';
 import { PinoLogger } from 'nestjs-pino';
 import { validate } from 'class-validator';
 import { plainToInstance } from 'class-transformer';
 import { NotificationGateway } from './notification.gateway';
+import { KAFKA_TRANSFERS_TOPIC } from '../../../lib/common/constants';
 
 @Controller()
 export class NotificationServiceController {
@@ -15,7 +16,7 @@ export class NotificationServiceController {
     this.logger.setContext(NotificationServiceController.name);
   }
 
-  @EventPattern('transfers')
+  @EventPattern(KAFKA_TRANSFERS_TOPIC)
   async handleEventTransfers(
     @Payload()
     payload?: TransferEventDto | null,

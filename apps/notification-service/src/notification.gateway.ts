@@ -10,7 +10,7 @@ import {
 import { PinoLogger } from 'nestjs-pino';
 import { Server, type Socket } from 'socket.io';
 import { USER_FROM_TOKEN } from '../../../lib/common/types';
-import { TransferEventDto } from './dto/transfer-event.dto';
+import { TransferEventDto } from '../../../lib/common/dto/transfer-event.dto';
 
 interface UserSocket extends Socket {
   data: USER_FROM_TOKEN;

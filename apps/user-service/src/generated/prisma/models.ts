@@ -11,4 +11,5 @@
 export type * from './models/User'
 export type * from './models/Avatar'
 export type * from './models/Transfer'
+export type * from './models/Outbox'
 export type * from './commonInputTypes'

@@ -32,3 +32,8 @@ export type Avatar = Prisma.AvatarModel
  * 
  */
 export type Transfer = Prisma.TransferModel
+/**
+ * Model Outbox
+ * 
+ */
+export type Outbox = Prisma.OutboxModel

@@ -1,7 +1,6 @@
 import {
   BadRequestException,
   ConflictException,
-  Inject,
   Injectable,
   NotFoundException,
   UnprocessableEntityException,
@@ -9,16 +8,14 @@ import {
 import { PrismaService } from '../providers/prisma/prisma.service';
 import { Decimal } from '../generated/prisma/internal/prismaNamespace';
 import { PinoLogger } from 'nestjs-pino';
-import { ClientKafkaProxy } from '@nestjs/microservices';
-import { TRANSFERS_KAFKA_NAME } from './constants';
-import { defer, lastValueFrom, retry } from 'rxjs';
+import { TransferEventDto } from '../../../../lib/common/dto/transfer-event.dto';
+import { KAFKA_TRANSFERS_TOPIC } from '../../../../lib/common/constants';
 
 @Injectable()
 export class TransfersService {
   constructor(
     private readonly repository: PrismaService,
     private readonly logger: PinoLogger,
-    @Inject(TRANSFERS_KAFKA_NAME) private readonly kafka: ClientKafkaProxy,
   ) {
     this.logger.setContext(TransfersService.name);
   }
@@ -60,7 +57,7 @@ export class TransfersService {
 
       if (existing) {
         this.validateExistingTransfer(existing, userFrom, userTo, amount);
-        return;
+        return existing;
       }
 
       const users = await tx.$queryRaw<{ id: string }[]>`
@@ -92,7 +89,7 @@ export class TransfersService {
         });
 
         this.validateExistingTransfer(existing, userFrom, userTo, amount);
-        return;
+        return existing;
       }
 
       const debit = await tx.user.updateMany({
@@ -108,27 +105,28 @@ export class TransfersService {
         data: { balance: { increment: amount } },
       });
 
-      return tx.transfer.findUniqueOrThrow({
+      const transfer = await tx.transfer.findUniqueOrThrow({
         where: { idempotencyKey },
       });
-    });
 
-    if (transfer) {
-      await lastValueFrom(
-        defer(() =>
-          this.kafka.emit('transfers', {
-            id: transfer.id,
-            userFrom: transfer.fromAccountId,
-            userTo: transfer.toAccountId,
-            idempotencyKey: transfer.idempotencyKey,
-            sum: transfer.sum.toString(),
-          }),
-        ).pipe(retry({ count: 3, delay: 2000 })),
-      );
+      const outboxPayload = {
+        id: transfer.id,
+        idempotencyKey: transfer.idempotencyKey,
+        sum: transfer.sum.toString(),
+        userFrom: transfer.fromAccountId,
+        userTo: transfer.toAccountId,
+      } satisfies TransferEventDto;
 
-      this.logger.info({ transferId: transfer.id }, 'Transfer event published');
+      await tx.outbox.create({
+        data: {
+          topic: KAFKA_TRANSFERS_TOPIC,
+          payload: outboxPayload,
+        },
+      });
 
       return transfer;
-    }
+    });
+
+    return transfer;
   }
 }
