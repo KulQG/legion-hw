@@ -1,9 +1,7 @@
-import { Controller } from '@nestjs/common';
-import { EventPattern, Payload } from '@nestjs/microservices';
+import { Controller, UsePipes, ValidationPipe } from '@nestjs/common';
+import { EventPattern, Payload, RpcException } from '@nestjs/microservices';
 import { TransferEventDto } from '../../../lib/common/dto/transfer-event.dto';
 import { PinoLogger } from 'nestjs-pino';
-import { validate } from 'class-validator';
-import { plainToInstance } from 'class-transformer';
 import { NotificationGateway } from './notification.gateway';
 import { KAFKA_TRANSFERS_TOPIC } from '../../../lib/common/constants';
 
@@ -16,22 +14,19 @@ export class NotificationServiceController {
     this.logger.setContext(NotificationServiceController.name);
   }
 
+  @UsePipes(
+    new ValidationPipe({
+      transform: true,
+      whitelist: true,
+      forbidNonWhitelisted: true,
+      exceptionFactory: () => new RpcException('Invalid transfer event'),
+    }),
+  )
   @EventPattern(KAFKA_TRANSFERS_TOPIC)
-  async handleEventTransfers(
+  handleEventTransfers(
     @Payload()
-    payload?: TransferEventDto | null,
+    payload: TransferEventDto,
   ) {
-    if (payload && typeof payload === 'object' && !Array.isArray(payload)) {
-      const errors = await validate(plainToInstance(TransferEventDto, payload));
-
-      if (errors.length) {
-        this.logger.warn(errors, 'event is not processed');
-        return;
-      }
-
-      this.socketGateway.sendNotification(payload);
-    } else {
-      this.logger.warn('event is not processed. Event is not an object');
-    }
+    this.socketGateway.sendNotification(payload);
   }
 }

@@ -77,6 +77,7 @@ export class OutboxPublisherService {
           retry({ count: 2, delay: 2_000 }),
         ),
       );
+      this.logger.info(`message ${mes.id} was confirmed`);
     } catch (err) {
       throw new Error(`message ${mes.id} was not confirmed to kafka`, {
         cause: err,

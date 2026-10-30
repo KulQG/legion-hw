@@ -1,4 +1,11 @@
-import { Body, Controller, Post, UseGuards, Headers } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Post,
+  UseGuards,
+  Headers,
+  BadRequestException,
+} from '@nestjs/common';
 import { TransfersService } from './transfers.service';
 import { JwtAuthGuard } from '../auth/auth.guard';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
@@ -18,9 +25,12 @@ export class TransfersController {
   @ApiHeader({ name: 'idempotency-key', required: true })
   async transfer(
     @CurrentUser() user: USER_FROM_TOKEN,
-    @Headers('idempotency-key') key: string,
+    @Headers('idempotency-key') key: string | undefined,
     @Body() dto: CreateTransferDTO,
   ) {
+    if (!key)
+      throw new BadRequestException('idempotency-key is required in headers');
+
     return await this.transfersService.createTransfer(
       user.userId,
       dto.toUserId,
