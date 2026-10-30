@@ -8,7 +8,4 @@ export class CreateTransferDTO {
     message: 'Invalid amount. Expected: "0.00"',
   })
   amount!: string;
-
-  @IsUUID()
-  idempotencyKey!: string;
 }

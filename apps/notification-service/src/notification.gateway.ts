@@ -10,6 +10,7 @@ import {
 import { PinoLogger } from 'nestjs-pino';
 import { Server, type Socket } from 'socket.io';
 import { USER_FROM_TOKEN } from '../../../lib/common/types';
+import { TransferEventDto } from './dto/transfer-event.dto';
 
 interface UserSocket extends Socket {
   data: USER_FROM_TOKEN;
@@ -74,7 +75,20 @@ export class NotificationGateway
     this.logger.info(`Cliend id:${client.id} disconnected`);
   }
 
-  sendNotification(userId: string) {
-    this.io.to(userId).emit('notification', { data: 'hello!' });
+  sendNotification(transferData: TransferEventDto) {
+    this.io.to(transferData.userFrom).emit('transfer-sent', {
+      data: {
+        id: transferData.id,
+        sum: transferData.sum,
+        to: transferData.userTo,
+      },
+    });
+    this.io.to(transferData.userTo).emit('transfer-received', {
+      data: {
+        id: transferData.id,
+        sum: transferData.sum,
+        from: transferData.userFrom,
+      },
+    });
   }
 }

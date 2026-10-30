@@ -1,6 +1,7 @@
 import {
   BadRequestException,
   ConflictException,
+  Inject,
   Injectable,
   NotFoundException,
   UnprocessableEntityException,
@@ -8,12 +9,16 @@ import {
 import { PrismaService } from '../providers/prisma/prisma.service';
 import { Decimal } from '../generated/prisma/internal/prismaNamespace';
 import { PinoLogger } from 'nestjs-pino';
+import { ClientKafkaProxy } from '@nestjs/microservices';
+import { TRANSFERS_KAFKA_NAME } from './constants';
+import { defer, lastValueFrom, retry } from 'rxjs';
 
 @Injectable()
 export class TransfersService {
   constructor(
     private readonly repository: PrismaService,
     private readonly logger: PinoLogger,
+    @Inject(TRANSFERS_KAFKA_NAME) private readonly kafka: ClientKafkaProxy,
   ) {
     this.logger.setContext(TransfersService.name);
   }
@@ -48,7 +53,7 @@ export class TransfersService {
     if (amount.lte(0)) throw new BadRequestException('Amount must be positive');
     if (userFrom === userTo) throw new BadRequestException('Same account');
 
-    return this.repository.$transaction(async (tx) => {
+    const transfer = await this.repository.$transaction(async (tx) => {
       const existing = await tx.transfer.findUnique({
         where: { idempotencyKey },
       });
@@ -107,5 +112,23 @@ export class TransfersService {
         where: { idempotencyKey },
       });
     });
+
+    if (transfer) {
+      await lastValueFrom(
+        defer(() =>
+          this.kafka.emit('transfers', {
+            id: transfer.id,
+            userFrom: transfer.fromAccountId,
+            userTo: transfer.toAccountId,
+            idempotencyKey: transfer.idempotencyKey,
+            sum: transfer.sum.toString(),
+          }),
+        ).pipe(retry({ count: 3, delay: 2000 })),
+      );
+
+      this.logger.info({ transferId: transfer.id }, 'Transfer event published');
+
+      return transfer;
+    }
   }
 }

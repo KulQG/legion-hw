@@ -4,7 +4,7 @@ import { JwtAuthGuard } from '../auth/auth.guard';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import { CreateTransferDTO } from './dto/create-transfer.dto';
 import { Decimal } from '../generated/prisma/internal/prismaNamespace';
-import { ApiResponse } from '@nestjs/swagger';
+import { ApiHeader, ApiResponse } from '@nestjs/swagger';
 import { TransferEntity } from './entities/transfer.entity';
 import { USER_FROM_TOKEN } from '../../../../lib/common/types';
 
@@ -15,6 +15,7 @@ export class TransfersController {
 
   @Post()
   @ApiResponse({ type: TransferEntity })
+  @ApiHeader({ name: 'idempotency-key', required: true })
   async transfer(
     @CurrentUser() user: USER_FROM_TOKEN,
     @Headers('idempotency-key') key: string,
