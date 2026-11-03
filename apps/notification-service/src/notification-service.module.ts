@@ -12,6 +12,7 @@ import kafkaConfig from '../../../lib/common/configs/kafka.config';
 import jwtConfig from '../../../lib/common/configs/jwt.config';
 import { NotificationDeduplicatorService } from './notification-deduplicator.service';
 import redisConfig from '../../../lib/common/configs/redis.config';
+import { NotificationsService } from './notification-service.service';
 
 @Module({
   imports: [
@@ -31,6 +32,10 @@ import redisConfig from '../../../lib/common/configs/redis.config';
     LoggerModule.forRoot(LOGGER_CONFIG),
   ],
   controllers: [NotificationServiceController],
-  providers: [NotificationGateway, NotificationDeduplicatorService],
+  providers: [
+    NotificationGateway,
+    NotificationDeduplicatorService,
+    NotificationsService,
+  ],
 })
 export class NotificationServiceModule {}
