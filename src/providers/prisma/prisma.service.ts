@@ -32,20 +32,10 @@ export class PrismaService
     return this.$extends({
       query: {
         $allModels: {
-          async findMany({ args, query }) {
-            args.where = { ...args.where, deleted: false };
-            return query(args);
-          },
-          async findFirst({ args, query }) {
-            args.where = { ...args.where, deleted: false };
-            return query(args);
-          },
-          async findUnique({ args, query }) {
-            args.where = { ...args.where, deleted: false };
-            return query(args);
-          },
-          async count({ args, query }) {
-            args.where = { ...args.where, deleted: false };
+          $allOperations: ({ args, query }) => {
+            if ('where' in args) {
+              args.where = { ...args.where, deletedAt: null };
+            }
             return query(args);
           },
         },

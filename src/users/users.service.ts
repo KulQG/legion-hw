@@ -3,16 +3,55 @@ import { PrismaService } from '../providers/prisma/prisma.service';
 import { Prisma } from '../generated/prisma/client';
 import { FindUsersQueryDTO } from './dto/find-users-query.dto';
 import { createPaginatedResponse } from '../common/helpers/create-paginated-response';
+import { getDateByYearsAgo } from '../common/helpers/get-date-by-years-ago';
+
+const ACTIVE_USERS_MIN_AVATARS_COUNT = 2;
 
 @Injectable()
 export class UsersService {
-  constructor(private readonly repository: PrismaService) {}
-  async findAll({ limit = 10, page = 1, search }: FindUsersQueryDTO) {
-    const where = search
-      ? {
-          OR: [{ name: { contains: search } }, { email: { contains: search } }],
-        }
-      : undefined;
+  private searchFilter: (
+    search: string,
+  ) => Partial<Prisma.UserWhereUniqueInput>;
+  private ageFilter: (filters: {
+    minAge?: number;
+    maxAge?: number;
+  }) => Partial<Prisma.UserWhereUniqueInput>;
+
+  constructor(private readonly repository: PrismaService) {
+    this.searchFilter = (search) => ({
+      OR: [
+        { name: { contains: search, mode: 'insensitive' } },
+        { email: { contains: search, mode: 'insensitive' } },
+      ],
+    });
+    this.ageFilter = ({ minAge, maxAge }) => ({
+      birthDate: {
+        ...(minAge !== undefined && { lte: getDateByYearsAgo(minAge) }),
+        ...(maxAge !== undefined && { gte: getDateByYearsAgo(maxAge, 1) }),
+      },
+    });
+  }
+
+  async findAll({
+    limit = 10,
+    page = 1,
+    search,
+    maxAge,
+    minAge,
+    isActive,
+  }: FindUsersQueryDTO) {
+    const activeUsersFilter: Partial<Prisma.UserWhereUniqueInput> = {
+      AND: [
+        { activeAvatarsCount: { gte: ACTIVE_USERS_MIN_AVATARS_COUNT } },
+        { NOT: { bio: null } },
+      ],
+    };
+
+    const where: Partial<Prisma.UserWhereUniqueInput> | undefined = {
+      ...this.ageFilter({ maxAge, minAge }),
+      ...(search ? this.searchFilter(search) : {}),
+      ...(isActive ? activeUsersFilter : {}),
+    };
 
     const [total, users] = await this.repository.$transaction([
       this.repository.soft.user.count({ where }),
@@ -21,6 +60,7 @@ export class UsersService {
         skip: Number(limit) * Number(page) - Number(limit),
         omit: { passwordHash: true },
         where,
+        orderBy: { id: 'desc' },
       }),
     ]);
 
@@ -30,6 +70,14 @@ export class UsersService {
   async findOne(id: string) {
     return this.repository.soft.user.findUnique({
       where: { id },
+      omit: { passwordHash: true },
+    });
+  }
+
+  async findOneWithAvatars(id: string) {
+    return this.repository.soft.user.findUnique({
+      where: { id },
+      include: { avatars: { where: { deletedAt: null } } },
       omit: { passwordHash: true },
     });
   }
@@ -54,10 +102,10 @@ export class UsersService {
 
   async delete(userId: string) {
     await this.repository.$executeRaw`
-      UPDATE "User"
+      UPDATE "users"
       SET email = 'deleted:' || id || ':' || email,
-          "deletedAt" = NOW()
-      WHERE id = ${userId} AND "deletedAt" IS NULL
+          "deleted_at" = NOW()
+      WHERE id = ${userId} AND "deleted_at" IS NULL
     `;
   }
 }

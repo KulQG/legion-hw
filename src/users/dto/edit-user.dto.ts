@@ -1,14 +1,20 @@
-import { IsEmail, IsInt, IsOptional, MaxLength, Min } from 'class-validator';
+import {
+  IsDate,
+  IsEmail,
+  IsOptional,
+  MaxDate,
+  MaxLength,
+} from 'class-validator';
 import { Prisma } from '../../generated/prisma/client';
 
 export class EditUserDTO implements Pick<
   Prisma.UserUpdateInput,
-  'age' | 'bio' | 'email' | 'name'
+  'birthDate' | 'bio' | 'email' | 'name'
 > {
   @IsOptional()
-  @IsInt()
-  @Min(0)
-  age?: number;
+  @IsDate()
+  @MaxDate(() => new Date())
+  birthDate?: Date;
 
   @IsOptional()
   @MaxLength(1000)

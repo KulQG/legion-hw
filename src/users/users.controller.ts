@@ -10,6 +10,7 @@ import {
   Res,
   Query,
   NotFoundException,
+  UseInterceptors,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { JwtAuthGuard } from '../auth/auth.guard';
@@ -21,9 +22,12 @@ import { ApiResponse } from '@nestjs/swagger';
 import { UserEntity } from './entities/user.entity';
 import { PaginatedEntity } from '../common/dto/paginated.entity';
 import { FindUsersQueryDTO } from './dto/find-users-query.dto';
+import { CacheInterceptor } from '@nestjs/cache-manager';
+import { USER_FROM_TOKEN } from '../common/types';
 
 @UseGuards(JwtAuthGuard)
 @Controller('users')
+@UseInterceptors(CacheInterceptor)
 export class UsersController {
   constructor(
     private readonly usersService: UsersService,
@@ -38,14 +42,14 @@ export class UsersController {
 
   @Get('me')
   @ApiResponse({ type: UserEntity })
-  async findMe(@CurrentUser() user: { userId: string }) {
+  async findMe(@CurrentUser() user: USER_FROM_TOKEN) {
     return await this.usersService.findOne(user.userId);
   }
 
   @Patch('me')
   @ApiResponse({ type: UserEntity })
   async update(
-    @CurrentUser() user: { userId: string },
+    @CurrentUser() user: USER_FROM_TOKEN,
     @Body() updateUserDto: EditUserDTO,
   ) {
     return await this.usersService.update(user.userId, updateUserDto);
@@ -53,7 +57,7 @@ export class UsersController {
 
   @Delete('me')
   async delete(
-    @CurrentUser() user: { userId: string },
+    @CurrentUser() user: USER_FROM_TOKEN,
     @Req() req: Request,
     @Res({ passthrough: true }) res: Response,
   ) {

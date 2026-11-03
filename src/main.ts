@@ -3,12 +3,15 @@ import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
 import cookieParser from 'cookie-parser';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import { Logger } from 'nestjs-pino';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create(AppModule, { bufferLogs: true });
   app.enableShutdownHooks();
   app.use(cookieParser());
   app.useGlobalPipes(new ValidationPipe());
+  const logger = app.get(Logger);
+  app.useLogger(logger);
 
   const config = new DocumentBuilder()
     .setTitle('Legion')
@@ -20,7 +23,7 @@ async function bootstrap() {
 
   await app.listen(process.env.PORT ?? 3000);
 
-  console.log('Server is running on ', process.env.PORT || 3000);
+  logger.log(`Server is running on ${process.env.PORT || 3000}`);
 }
 
 bootstrap().catch((e) => {
