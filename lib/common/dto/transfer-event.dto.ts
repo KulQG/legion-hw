@@ -1,4 +1,10 @@
-import { IsDecimal, IsNotEmpty, IsString, IsUUID } from 'class-validator';
+import {
+  IsDecimal,
+  IsNotEmpty,
+  IsPositive,
+  IsString,
+  IsUUID,
+} from 'class-validator';
 
 export class TransferEventDto {
   @IsUUID()
@@ -11,7 +17,8 @@ export class TransferEventDto {
   @IsNotEmpty()
   idempotencyKey!: string;
 
-  @IsDecimal({ decimal_digits: '0,' })
+  @IsDecimal({ decimal_digits: '1,2' })
+  @IsPositive()
   sum!: string;
 
   @IsUUID()
