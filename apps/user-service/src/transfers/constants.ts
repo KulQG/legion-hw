@@ -1,0 +1,1 @@
+export const TRANSFERS_KAFKA_NAME = Symbol('TRANSFERS_KAFKA');
