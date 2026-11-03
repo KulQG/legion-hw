@@ -51,6 +51,6 @@ export class AvatarsController {
 
   @Delete(':id')
   async delete(@CurrentUser() user: USER_FROM_TOKEN, @Param('id') id: string) {
-    await this.avatarsService.delete(id, user.userId);
+    await this.avatarsService.delete(user.userId, id);
   }
 }

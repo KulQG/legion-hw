@@ -10,6 +10,7 @@ import { IFileService } from '../providers/files/files.adapter';
 import { PinoLogger } from 'nestjs-pino';
 import { Cron } from '@nestjs/schedule';
 import { OnOneInstance } from '@nestjs/locks';
+import { ConfigService } from '@nestjs/config';
 
 const CLEANUP_BATCH_SIZE = 100;
 
@@ -24,7 +25,7 @@ export class AvatarCleanupService {
     this.logger.setContext(AvatarCleanupService.name);
   }
 
-  @Cron('0 0 3 * * 1-7')
+  @Cron(new ConfigService().getOrThrow<string>('CRON_SCHEDULE'))
   @OnOneInstance({ key: 'nightly-cleanup' })
   async addCleanupTask() {
     await this.queue.add(CLEANUP_TASK_NAME, null, {
