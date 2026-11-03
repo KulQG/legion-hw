@@ -4,6 +4,9 @@ import { ValidationPipe } from '@nestjs/common';
 import cookieParser from 'cookie-parser';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { Logger } from 'nestjs-pino';
+import appConfig from '../config/app.config';
+import { AppConfigType } from '../config/user-service-config.types';
+import { HttpExceptionFilter } from '../../../lib/common/http-exception.filter';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, { bufferLogs: true });
@@ -21,7 +24,11 @@ async function bootstrap() {
   const documentFactory = () => SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api', app, documentFactory);
 
-  await app.listen(process.env.USER_SERVICE_PORT ?? 3000);
+  app.useGlobalFilters(new HttpExceptionFilter());
+
+  const { port } = app.get<AppConfigType>(appConfig.KEY);
+
+  await app.listen(port);
 
   logger.log(`Server is running on ${process.env.USER_SERVICE_PORT ?? 3000}`);
 }

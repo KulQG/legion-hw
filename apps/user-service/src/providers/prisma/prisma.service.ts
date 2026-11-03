@@ -1,7 +1,13 @@
-import { Injectable, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
+import {
+  Inject,
+  Injectable,
+  OnModuleDestroy,
+  OnModuleInit,
+} from '@nestjs/common';
 import { PrismaPg } from '@prisma/adapter-pg';
 import { PrismaClient } from '../../generated/prisma/client';
+import dbConfig from '../../../config/db.config';
+import { DBConfigType } from '../../../config/user-service-config.types';
 
 @Injectable()
 export class PrismaService
@@ -10,9 +16,12 @@ export class PrismaService
 {
   public soft!: ReturnType<typeof this.getSoftClient>;
 
-  constructor(configService: ConfigService) {
+  constructor(
+    @Inject(dbConfig.KEY)
+    private readonly configService: DBConfigType,
+  ) {
     const adapter = new PrismaPg({
-      connectionString: configService.getOrThrow<string>('DATABASE_URL'),
+      connectionString: configService.url,
     });
     super({ adapter });
   }

@@ -1,5 +1,5 @@
 import { InjectQueue } from '@nestjs/bullmq';
-import { Inject, Injectable } from '@nestjs/common';
+import { Inject, Injectable, OnApplicationBootstrap } from '@nestjs/common';
 import { Queue } from 'bullmq';
 import {
   AVATAR_CLEANUP_QUEUE_NAME,
@@ -8,25 +8,38 @@ import {
 import { PrismaService } from '../providers/prisma/prisma.service';
 import { IFileService } from '../providers/files/files.adapter';
 import { PinoLogger } from 'nestjs-pino';
-import { Cron } from '@nestjs/schedule';
-import { OnOneInstance } from '@nestjs/locks';
-import { ConfigService } from '@nestjs/config';
+import appConfig from '../../config/app.config';
+import { AppConfigType } from '../../config/user-service-config.types';
+import { CronJob } from 'cron';
+import { SchedulerRegistry } from '@nestjs/schedule';
 
 const CLEANUP_BATCH_SIZE = 100;
 
 @Injectable()
-export class AvatarCleanupService {
+export class AvatarCleanupService implements OnApplicationBootstrap {
   constructor(
-    @InjectQueue(AVATAR_CLEANUP_QUEUE_NAME) private queue: Queue,
+    @InjectQueue(AVATAR_CLEANUP_QUEUE_NAME)
+    private queue: Queue,
     @Inject() private readonly fileService: IFileService,
     private readonly repository: PrismaService,
     private readonly logger: PinoLogger,
+    @Inject(appConfig.KEY)
+    private readonly configService: AppConfigType,
+    private readonly schedulerRegistry: SchedulerRegistry,
   ) {
     this.logger.setContext(AvatarCleanupService.name);
   }
 
-  @Cron(new ConfigService().getOrThrow<string>('CRON_SCHEDULE'))
-  @OnOneInstance({ key: 'nightly-cleanup' })
+  onApplicationBootstrap() {
+    const job = CronJob.from({
+      cronTime: this.configService.cron_schedule,
+      onTick: () => this.addCleanupTask(),
+    });
+
+    this.schedulerRegistry.addCronJob('nightly-cleanup', job);
+    job.start();
+  }
+
   async addCleanupTask() {
     await this.queue.add(CLEANUP_TASK_NAME, null, {
       deduplication: { id: 'avatar-cleanup' },

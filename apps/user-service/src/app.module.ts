@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { ConfigModule, ConfigService } from '@nestjs/config';
+import { ConfigModule } from '@nestjs/config';
 import { UsersModule } from './users/users.module';
 import { PrismaModule } from './providers/prisma/prisma.module';
 import { AuthModule } from './auth/auth.module';
@@ -18,6 +18,13 @@ import { TransfersModule } from './transfers/transfers.module';
 import { AvatarCleanupModule } from './avatar-cleanup/avatar-cleanup.module';
 import { BullModule } from '@nestjs/bullmq';
 import { ScheduleModule } from '@nestjs/schedule';
+import appConfig from '../config/app.config';
+import jwtConfig from '../../../lib/common/configs/jwt.config';
+import dbConfig from '../config/db.config';
+import minioConfig from '../config/minio.config';
+import redisConfig from '../config/redis.config';
+import { RedisConfigType } from '../config/user-service-config.types';
+import kafkaConfig from '../../../lib/common/configs/kafka.config';
 
 @Module({
   imports: [
@@ -31,23 +38,33 @@ import { ScheduleModule } from '@nestjs/schedule';
     }),
     CacheModule.registerAsync({
       isGlobal: true,
-      inject: [ConfigService],
-      useFactory: (config: ConfigService) => ({
-        stores: [
-          createKeyv(config.getOrThrow('REDIS_URL'), { namespace: 'cache' }),
-        ],
+      inject: [redisConfig.KEY],
+      useFactory: (config: RedisConfigType) => ({
+        stores: [createKeyv(config.url, { namespace: 'cache' })],
         ttl: 30_000,
       }),
     }),
     BullModule.forRootAsync({
-      inject: [ConfigService],
-      useFactory: (config: ConfigService) => ({
-        connection: config.getOrThrow('REDIS_URL'),
+      inject: [redisConfig.KEY],
+      useFactory: (config: RedisConfigType) => ({
+        connection: {
+          url: config.url,
+        },
       }),
     }),
     ScheduleModule.forRoot(),
     LoggerModule.forRoot(LOGGER_CONFIG),
-    ConfigModule.forRoot({ isGlobal: true }),
+    ConfigModule.forRoot({
+      isGlobal: true,
+      load: [
+        appConfig,
+        kafkaConfig,
+        jwtConfig,
+        dbConfig,
+        minioConfig,
+        redisConfig,
+      ],
+    }),
     UsersModule,
     PrismaModule,
     AuthModule,

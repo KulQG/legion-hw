@@ -1,8 +1,9 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
+import { Inject, Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { RedisService } from '../../providers/redis/redis.service';
 import { randomUUID } from 'node:crypto';
+import jwtConfig from '../../../../../lib/common/configs/jwt.config';
+import { JwtConfigType } from '../../../../../lib/common/types';
 
 type JwtAccessPayload = { sub: string; email: string };
 type JwtRefreshPayload = JwtAccessPayload & { jti: string };
@@ -15,12 +16,13 @@ export class TokensService {
   private readonly secretAccess: string;
 
   constructor(
-    private readonly configService: ConfigService,
+    @Inject(jwtConfig.KEY)
+    private readonly jwtConfigService: JwtConfigType,
     private readonly jwtService: JwtService,
     private readonly redisService: RedisService,
   ) {
-    this.secretRefresh = this.configService.get<string>('REFRESH_JWT_SECRET')!;
-    this.secretAccess = this.configService.get<string>('JWT_SECRET')!;
+    this.secretRefresh = this.jwtConfigService.refresh_secret;
+    this.secretAccess = this.jwtConfigService.secret;
   }
 
   private generateRefreshTokenKey(userId: string, jti: string) {

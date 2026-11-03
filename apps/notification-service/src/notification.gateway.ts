@@ -1,4 +1,3 @@
-import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import {
   OnGatewayConnection,
@@ -9,8 +8,10 @@ import {
 } from '@nestjs/websockets';
 import { PinoLogger } from 'nestjs-pino';
 import { Server, type Socket } from 'socket.io';
-import { USER_FROM_TOKEN } from '../../../lib/common/types';
+import { JwtConfigType, USER_FROM_TOKEN } from '../../../lib/common/types';
 import { TransferEventDto } from '../../../lib/common/dto/transfer-event.dto';
+import { Inject } from '@nestjs/common';
+import jwtConfig from '../../../lib/common/configs/jwt.config';
 
 interface UserSocket extends Socket {
   data: USER_FROM_TOKEN;
@@ -23,7 +24,8 @@ export class NotificationGateway
   constructor(
     private readonly logger: PinoLogger,
     private readonly jwtService: JwtService,
-    private readonly configService: ConfigService,
+    @Inject(jwtConfig.KEY)
+    private readonly configService: JwtConfigType,
   ) {
     this.logger.setContext(NotificationGateway.name);
   }
@@ -42,7 +44,7 @@ export class NotificationGateway
         const payload = this.jwtService.verify<Partial<{ sub: string }>>(
           token,
           {
-            secret: this.configService.getOrThrow<string>('JWT_SECRET'),
+            secret: this.configService.secret,
           },
         );
 
@@ -76,15 +78,17 @@ export class NotificationGateway
   }
 
   sendNotification(transferData: TransferEventDto) {
-    this.io.to(transferData.userFrom).emit('transfer-sent', {
+    this.io.to(transferData.userFrom).emit('notification', {
       data: {
+        type: 'transfer-sent',
         id: transferData.id,
         sum: transferData.sum,
         to: transferData.userTo,
       },
     });
-    this.io.to(transferData.userTo).emit('transfer-received', {
+    this.io.to(transferData.userTo).emit('notification', {
       data: {
+        type: 'transfer-received',
         id: transferData.id,
         sum: transferData.sum,
         from: transferData.userFrom,
