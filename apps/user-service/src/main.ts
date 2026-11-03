@@ -33,6 +33,6 @@ async function bootstrap() {
   logger.log(`Server is running on ${process.env.USER_SERVICE_PORT ?? 3000}`);
 }
 
-bootstrap().catch((e) => {
-  console.error('Error during application bootstrap:', e);
+bootstrap().catch((e: Error) => {
+  console.error('Error during application bootstrap:', e.message);
 });

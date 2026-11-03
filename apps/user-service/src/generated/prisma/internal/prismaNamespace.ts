@@ -802,7 +802,8 @@ export const OutboxScalarFieldEnum = {
   createdAt: 'createdAt',
   processedAt: 'processedAt',
   claimId: 'claimId',
-  lockedUntil: 'lockedUntil'
+  lockedUntil: 'lockedUntil',
+  requestId: 'requestId'
 } as const
 
 export type OutboxScalarFieldEnum = (typeof OutboxScalarFieldEnum)[keyof typeof OutboxScalarFieldEnum]

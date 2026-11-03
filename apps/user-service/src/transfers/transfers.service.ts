@@ -46,6 +46,7 @@ export class TransfersService {
     userTo: string,
     amount: Decimal,
     idempotencyKey: string,
+    requestId: string,
   ) {
     if (amount.lte(0)) throw new BadRequestException('Amount must be positive');
     if (userFrom === userTo) throw new BadRequestException('Same account');
@@ -121,6 +122,7 @@ export class TransfersService {
         data: {
           topic: KAFKA_TRANSFERS_TOPIC,
           payload: outboxPayload,
+          requestId,
         },
       });
 

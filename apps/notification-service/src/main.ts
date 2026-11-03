@@ -13,6 +13,8 @@ async function bootstrap() {
     bufferLogs: true,
   });
 
+  app.enableShutdownHooks();
+
   const logger = app.get(Logger);
   app.useLogger(logger);
 
@@ -39,6 +41,6 @@ async function bootstrap() {
   logger.log(`Server is running on ${port}`);
 }
 
-bootstrap().catch((e) => {
-  console.error('Error during notification-service bootstrap:', e);
+bootstrap().catch((e: Error) => {
+  console.error('Error during notification-service bootstrap:', e.message);
 });

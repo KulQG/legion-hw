@@ -10,12 +10,14 @@ import { getRequestId } from '../../../lib/common/helpers/get-request-id';
 import appConfig from '../config/app.config';
 import kafkaConfig from '../../../lib/common/configs/kafka.config';
 import jwtConfig from '../../../lib/common/configs/jwt.config';
+import { NotificationDeduplicatorService } from './notification-deduplicator.service';
+import redisConfig from '../../../lib/common/configs/redis.config';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
-      load: [appConfig, kafkaConfig, jwtConfig],
+      load: [appConfig, kafkaConfig, jwtConfig, redisConfig],
     }),
     JwtModule.register({}),
     ClsModule.forRoot({
@@ -29,6 +31,6 @@ import jwtConfig from '../../../lib/common/configs/jwt.config';
     LoggerModule.forRoot(LOGGER_CONFIG),
   ],
   controllers: [NotificationServiceController],
-  providers: [NotificationGateway],
+  providers: [NotificationGateway, NotificationDeduplicatorService],
 })
 export class NotificationServiceModule {}

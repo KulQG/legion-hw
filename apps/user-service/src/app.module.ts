@@ -22,9 +22,9 @@ import appConfig from '../config/app.config';
 import jwtConfig from '../../../lib/common/configs/jwt.config';
 import dbConfig from '../config/db.config';
 import minioConfig from '../config/minio.config';
-import redisConfig from '../config/redis.config';
-import { RedisConfigType } from '../config/user-service-config.types';
+import redisConfig from '../../../lib/common/configs/redis.config';
 import kafkaConfig from '../../../lib/common/configs/kafka.config';
+import { RedisConfigType } from '../../../lib/common/types';
 
 @Module({
   imports: [

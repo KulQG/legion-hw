@@ -41,6 +41,7 @@ export type OutboxMinAggregateOutputType = {
   processedAt: Date | null
   claimId: string | null
   lockedUntil: Date | null
+  requestId: string | null
 }
 
 export type OutboxMaxAggregateOutputType = {
@@ -50,6 +51,7 @@ export type OutboxMaxAggregateOutputType = {
   processedAt: Date | null
   claimId: string | null
   lockedUntil: Date | null
+  requestId: string | null
 }
 
 export type OutboxCountAggregateOutputType = {
@@ -60,6 +62,7 @@ export type OutboxCountAggregateOutputType = {
   processedAt: number
   claimId: number
   lockedUntil: number
+  requestId: number
   _all: number
 }
 
@@ -79,6 +82,7 @@ export type OutboxMinAggregateInputType = {
   processedAt?: true
   claimId?: true
   lockedUntil?: true
+  requestId?: true
 }
 
 export type OutboxMaxAggregateInputType = {
@@ -88,6 +92,7 @@ export type OutboxMaxAggregateInputType = {
   processedAt?: true
   claimId?: true
   lockedUntil?: true
+  requestId?: true
 }
 
 export type OutboxCountAggregateInputType = {
@@ -98,6 +103,7 @@ export type OutboxCountAggregateInputType = {
   processedAt?: true
   claimId?: true
   lockedUntil?: true
+  requestId?: true
   _all?: true
 }
 
@@ -195,6 +201,7 @@ export type OutboxGroupByOutputType = {
   processedAt: Date | null
   claimId: string | null
   lockedUntil: Date | null
+  requestId: string | null
   _count: OutboxCountAggregateOutputType | null
   _avg: OutboxAvgAggregateOutputType | null
   _sum: OutboxSumAggregateOutputType | null
@@ -228,6 +235,7 @@ export type OutboxWhereInput = {
   processedAt?: Prisma.DateTimeNullableFilter<"Outbox"> | Date | string | null
   claimId?: Prisma.UuidNullableFilter<"Outbox"> | string | null
   lockedUntil?: Prisma.DateTimeNullableFilter<"Outbox"> | Date | string | null
+  requestId?: Prisma.StringNullableFilter<"Outbox"> | string | null
 }
 
 export type OutboxOrderByWithRelationInput = {
@@ -238,6 +246,7 @@ export type OutboxOrderByWithRelationInput = {
   processedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   claimId?: Prisma.SortOrderInput | Prisma.SortOrder
   lockedUntil?: Prisma.SortOrderInput | Prisma.SortOrder
+  requestId?: Prisma.SortOrderInput | Prisma.SortOrder
 }
 
 export type OutboxWhereUniqueInput = Prisma.AtLeast<{
@@ -251,6 +260,7 @@ export type OutboxWhereUniqueInput = Prisma.AtLeast<{
   processedAt?: Prisma.DateTimeNullableFilter<"Outbox"> | Date | string | null
   claimId?: Prisma.UuidNullableFilter<"Outbox"> | string | null
   lockedUntil?: Prisma.DateTimeNullableFilter<"Outbox"> | Date | string | null
+  requestId?: Prisma.StringNullableFilter<"Outbox"> | string | null
 }, "id">
 
 export type OutboxOrderByWithAggregationInput = {
@@ -261,6 +271,7 @@ export type OutboxOrderByWithAggregationInput = {
   processedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   claimId?: Prisma.SortOrderInput | Prisma.SortOrder
   lockedUntil?: Prisma.SortOrderInput | Prisma.SortOrder
+  requestId?: Prisma.SortOrderInput | Prisma.SortOrder
   _count?: Prisma.OutboxCountOrderByAggregateInput
   _avg?: Prisma.OutboxAvgOrderByAggregateInput
   _max?: Prisma.OutboxMaxOrderByAggregateInput
@@ -279,6 +290,7 @@ export type OutboxScalarWhereWithAggregatesInput = {
   processedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"Outbox"> | Date | string | null
   claimId?: Prisma.UuidNullableWithAggregatesFilter<"Outbox"> | string | null
   lockedUntil?: Prisma.DateTimeNullableWithAggregatesFilter<"Outbox"> | Date | string | null
+  requestId?: Prisma.StringNullableWithAggregatesFilter<"Outbox"> | string | null
 }
 
 export type OutboxCreateInput = {
@@ -288,6 +300,7 @@ export type OutboxCreateInput = {
   processedAt?: Date | string | null
   claimId?: string | null
   lockedUntil?: Date | string | null
+  requestId?: string | null
 }
 
 export type OutboxUncheckedCreateInput = {
@@ -298,6 +311,7 @@ export type OutboxUncheckedCreateInput = {
   processedAt?: Date | string | null
   claimId?: string | null
   lockedUntil?: Date | string | null
+  requestId?: string | null
 }
 
 export type OutboxUpdateInput = {
@@ -307,6 +321,7 @@ export type OutboxUpdateInput = {
   processedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   claimId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   lockedUntil?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  requestId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 export type OutboxUncheckedUpdateInput = {
@@ -317,6 +332,7 @@ export type OutboxUncheckedUpdateInput = {
   processedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   claimId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   lockedUntil?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  requestId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 export type OutboxCreateManyInput = {
@@ -327,6 +343,7 @@ export type OutboxCreateManyInput = {
   processedAt?: Date | string | null
   claimId?: string | null
   lockedUntil?: Date | string | null
+  requestId?: string | null
 }
 
 export type OutboxUpdateManyMutationInput = {
@@ -336,6 +353,7 @@ export type OutboxUpdateManyMutationInput = {
   processedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   claimId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   lockedUntil?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  requestId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 export type OutboxUncheckedUpdateManyInput = {
@@ -346,6 +364,7 @@ export type OutboxUncheckedUpdateManyInput = {
   processedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   claimId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   lockedUntil?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  requestId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 export type OutboxCountOrderByAggregateInput = {
@@ -356,6 +375,7 @@ export type OutboxCountOrderByAggregateInput = {
   processedAt?: Prisma.SortOrder
   claimId?: Prisma.SortOrder
   lockedUntil?: Prisma.SortOrder
+  requestId?: Prisma.SortOrder
 }
 
 export type OutboxAvgOrderByAggregateInput = {
@@ -369,6 +389,7 @@ export type OutboxMaxOrderByAggregateInput = {
   processedAt?: Prisma.SortOrder
   claimId?: Prisma.SortOrder
   lockedUntil?: Prisma.SortOrder
+  requestId?: Prisma.SortOrder
 }
 
 export type OutboxMinOrderByAggregateInput = {
@@ -378,6 +399,7 @@ export type OutboxMinOrderByAggregateInput = {
   processedAt?: Prisma.SortOrder
   claimId?: Prisma.SortOrder
   lockedUntil?: Prisma.SortOrder
+  requestId?: Prisma.SortOrder
 }
 
 export type OutboxSumOrderByAggregateInput = {
@@ -394,6 +416,7 @@ export type OutboxSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs =
   processedAt?: boolean
   claimId?: boolean
   lockedUntil?: boolean
+  requestId?: boolean
 }, ExtArgs["result"]["outbox"]>
 
 export type OutboxSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -404,6 +427,7 @@ export type OutboxSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extens
   processedAt?: boolean
   claimId?: boolean
   lockedUntil?: boolean
+  requestId?: boolean
 }, ExtArgs["result"]["outbox"]>
 
 export type OutboxSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -414,6 +438,7 @@ export type OutboxSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extens
   processedAt?: boolean
   claimId?: boolean
   lockedUntil?: boolean
+  requestId?: boolean
 }, ExtArgs["result"]["outbox"]>
 
 export type OutboxSelectScalar = {
@@ -424,9 +449,10 @@ export type OutboxSelectScalar = {
   processedAt?: boolean
   claimId?: boolean
   lockedUntil?: boolean
+  requestId?: boolean
 }
 
-export type OutboxOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "topic" | "payload" | "createdAt" | "processedAt" | "claimId" | "lockedUntil", ExtArgs["result"]["outbox"]>
+export type OutboxOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "topic" | "payload" | "createdAt" | "processedAt" | "claimId" | "lockedUntil" | "requestId", ExtArgs["result"]["outbox"]>
 
 export type $OutboxPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "Outbox"
@@ -439,6 +465,7 @@ export type $OutboxPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs
     processedAt: Date | null
     claimId: string | null
     lockedUntil: Date | null
+    requestId: string | null
   }, ExtArgs["result"]["outbox"]>
   composites: {}
 }
@@ -869,6 +896,7 @@ export interface OutboxFieldRefs {
   readonly processedAt: Prisma.FieldRef<"Outbox", 'DateTime'>
   readonly claimId: Prisma.FieldRef<"Outbox", 'String'>
   readonly lockedUntil: Prisma.FieldRef<"Outbox", 'DateTime'>
+  readonly requestId: Prisma.FieldRef<"Outbox", 'String'>
 }
     
 

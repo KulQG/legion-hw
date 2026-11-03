@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../providers/prisma/prisma.service';
 import { PinoLogger } from 'nestjs-pino';
 import { randomUUID } from 'node:crypto';
+import { OUTBOX_LEASE_MS } from './outbox-publisher.constants';
 
 interface ClaimedOutboxRow {
   id: number;
@@ -9,6 +10,7 @@ interface ClaimedOutboxRow {
   payload: unknown;
   claimId: string;
   lockedUntil: Date;
+  requestId: string | null;
 }
 
 @Injectable()
@@ -35,7 +37,7 @@ export class OutboxRepository {
         )
         UPDATE outbox AS o
         SET claim_id = ${claimId}::uuid,
-            locked_until = NOW() + INTERVAL '1 minute'
+            locked_until = NOW() + ${OUTBOX_LEASE_MS} * INTERVAL '1 millisecond'
         FROM candidates
         WHERE o.id = candidates.id
         RETURNING
@@ -43,6 +45,7 @@ export class OutboxRepository {
           o.topic,
           o.payload,
           o.claim_id AS "claimId",
+          o.request_id AS "requestId",
           o.locked_until AS "lockedUntil"
       `;
   }
