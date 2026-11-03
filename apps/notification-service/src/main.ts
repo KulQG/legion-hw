@@ -34,9 +34,9 @@ async function bootstrap() {
     },
   });
 
+  app.useGlobalFilters(new HttpExceptionFilter());
   await app.init();
   await app.startAllMicroservices();
-  app.useGlobalFilters(new HttpExceptionFilter());
 
   await app.listen(port);
   logger.log(`Server is running on ${port}`);
