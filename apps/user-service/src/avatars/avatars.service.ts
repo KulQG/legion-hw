@@ -80,12 +80,12 @@ export class AvatarsService {
 
       return { fileKey };
     } catch (e) {
-      await this.fileService.removeFile({ path: fileKey });
+      await this.fileService.removeFile({ path: `${userId}/${fileKey}` });
       throw e;
     }
   }
 
-  async delete(userId: string, id: string) {
+  async delete(userId: string, avatarId: string) {
     await this.repository.$transaction(async (tx) => {
       const [user] = await tx.$queryRaw<{ currentAvatar: string | null }[]>`
         SELECT "current_avatar" AS "currentAvatar" FROM "users"
@@ -99,7 +99,7 @@ export class AvatarsService {
       }
 
       const { count } = await tx.avatar.updateMany({
-        where: { id, userId, deletedAt: null },
+        where: { id: avatarId, userId, deletedAt: null },
         data: { deletedAt: new Date() },
       });
 
@@ -111,7 +111,7 @@ export class AvatarsService {
         activeAvatarsCount: { decrement: 1 },
       };
 
-      if (user.currentAvatar === id) {
+      if (user.currentAvatar === avatarId) {
         const last = await tx.avatar.findFirst({
           where: { userId, deletedAt: null },
           orderBy: { createdAt: 'desc' },
@@ -123,7 +123,7 @@ export class AvatarsService {
       await tx.user.update({ where: { id: userId }, data });
 
       this.logger.info(
-        `[delete avatar]: avatar [${id}] deleted; user [${userId}]`,
+        `[delete avatar]: avatar [${avatarId}] deleted; user [${userId}]`,
       );
     });
   }
