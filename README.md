@@ -3,9 +3,9 @@
 Два NestJS приложения:
 
 - `user-service` принимает HTTP-запросы на `http://localhost:8080` и записывает события переводов в outbox.
-- `notification-service` читает события из Kafka и отправляет уведомления через Socket.IO на `http://localhost:8081`.
+- `notification-service` читает события из Kafka, сохраняет уведомления в MongoDB и отправляет их через Socket.IO на `http://localhost:8081`.
 
-PostgreSQL, Redis, MinIO, Kafka и Kafka UI запускаются через Docker Compose. Команды ниже выполняются из корня репозитория; оба NestJS приложения запускаются на компьютере, вне Docker.
+PostgreSQL, MongoDB, Redis, MinIO, Kafka и Kafka UI запускаются через Docker Compose. Команды ниже выполняются из корня репозитория; оба NestJS приложения запускаются на компьютере, вне Docker.
 
 ## Подготовка
 
@@ -24,12 +24,15 @@ PostgreSQL, Redis, MinIO, Kafka и Kafka UI запускаются через Do
    | `KAFKA_URL` | `localhost:9092` |
    | `REDIS_URL` | `redis://localhost:6379` |
    | `MINIO_URL` | `http://localhost:9000` |
+   | `MONGO_URL` | `mongodb://USER:PASSWORD@127.0.0.1:27017/notifications?authSource=admin` |
 
    `DATABASE_URL` должен указывать на PostgreSQL по адресу `localhost:5432` и базу `mybd`, указанную в `docker-compose.yml`. Укажите в нём того же пользователя и пароль, что и в настройках контейнера. Задайте `POSTGRES_PASSWORD`, `MINIO_PASSWORD`, `JWT_SECRET`, `REFRESH_JWT_SECRET` и `CRON_SCHEDULE`. Для MinIO используйте `MINIO_ACCESS_KEY=minioadmin` и задайте `MINIO_SECRET_KEY` равным `MINIO_PASSWORD`. Не публикуйте `.env` в репозитории.
 
    `KAFKA_PORT` из `.env.example` сейчас не используется: порт Kafka задан в `docker-compose.yml`.
 
-3. Запустите инфраструктуру и дождитесь готовности PostgreSQL и Kafka:
+   Добавьте `MONGO_USER`, `MONGO_PASSWORD` и `MONGO_URL`, если их нет в шаблоне. В `MONGO_URL` замените `USER` и `PASSWORD` значениями из `MONGO_USER` и `MONGO_PASSWORD`; специальные символы в логине и пароле должны быть URL-кодированы. `authSource=admin` нужен для пользователя, создаваемого настройками контейнера. Локальное приложение подключается к `127.0.0.1:27017`; имя `mongodb` предназначено для общей Docker-сети. Данные MongoDB хранятся в volume `mongodata`; переменные создания пользователя применяются при первой инициализации пустой базы.
+
+3. Запустите инфраструктуру и дождитесь готовности PostgreSQL, MongoDB и Kafka:
 
    ```bash
    docker compose up -d
@@ -83,10 +86,12 @@ pnpm run start:prod:notification
    const { io } = await import('https://cdn.socket.io/4.8.4/socket.io.esm.min.js');
 
    const sender = io('http://localhost:8081', {
+     autoConnect: false,
      auth: { token: '<ACCESS_TOKEN_ОТПРАВИТЕЛЯ>' },
      transports: ['websocket'],
    });
    const recipient = io('http://localhost:8081', {
+     autoConnect: false,
      auth: { token: '<ACCESS_TOKEN_ПОЛУЧАТЕЛЯ>' },
      transports: ['websocket'],
    });
@@ -95,8 +100,24 @@ pnpm run start:prod:notification
    recipient.on('connect', () => console.log('recipient connected'));
    sender.on('connect_error', console.error);
    recipient.on('connect_error', console.error);
-   sender.on('notification', (event) => console.log('sender:', event));
-   recipient.on('notification', (event) => console.log('recipient:', event));
+   function handleNotifications(socket, label) {
+     const receivedIds = new Set();
+
+     socket.on('notification', (event, acknowledge) => {
+       if (!receivedIds.has(event.id)) {
+         console.log(label, event);
+         receivedIds.add(event.id);
+       }
+
+       // Подтверждаем также повторы: предыдущий ACK мог не дойти.
+       acknowledge(true);
+     });
+   }
+
+   handleNotifications(sender, 'sender:');
+   handleNotifications(recipient, 'recipient:');
+   sender.connect();
+   recipient.connect();
    ```
 
 4. Отправьте HTTP-запрос через любой клиент, например Postman. Используйте токен **отправителя** и новый UUID в заголовке `idempotency-key`:
@@ -111,3 +132,16 @@ pnpm run start:prod:notification
    ```
 
    После публикации события из outbox в Kafka отправитель увидит событие `notification` с типом `transfer-sent`, а получатель — `notification` с типом `transfer-received`. Публикация выполняется фоновым заданием, поэтому уведомления могут прийти через несколько секунд после HTTP-ответа.
+
+   Формат события — `{ id, data }`: `id` идентифицирует уведомление, `data.type` задаёт его тип, а `data.transferId` — ID перевода. Для отправителя в `data` передаются `sum` и `toUser`, для получателя — `sum` и `fromUser`.
+
+5. Проверьте доставку после отключения: выполните `recipient.disconnect()`, создайте ещё один перевод с новым `idempotency-key` и дождитесь публикации события. Затем выполните `recipient.connect()`: сохранённое неполученное уведомление должно прийти с прежним обработчиком ACK. После подтверждения повторное отключение и подключение не должно заново доставлять эту запись из истории.
+
+## Сохранение и подтверждение доставки
+
+- Kafka offset коммитится вручную после сохранения уведомлений обоих участников в MongoDB, до отправки по Socket.IO.
+- Повторное событие использует существующие записи благодаря `upsert` и уникальному индексу `{ userId, eventId }`. В поле `eventId` сейчас сохраняется `idempotencyKey` перевода. Для защиты от конкурентных вставок индекс должен быть создан в MongoDB.
+- События отправляются в комнату пользователя всем его подключённым вкладкам и устройствам. ACK `true` хотя бы одного устройства позволяет выставить `received: true` для уведомления пользователя. Это подтверждение получения клиентом, а не прочтения человеком и не доставки каждому устройству.
+- Сервер ждёт ACK до пяти секунд. Без подтверждения уведомление остаётся с `received: false`; история повторно отправляется при подключении группами до 10 уведомлений одновременно. Фонового повтора по таймеру нет.
+- При обычном сетевом обрыве клиент Socket.IO автоматически пытается переподключиться. После явного `disconnect()` в примере нужно вызвать `connect()` вручную.
+- Повторные доставки возможны, например при потере ACK. Клиент должен устранять повторы по `id` и подтверждать их. В примере `Set` живёт только до перезагрузки страницы; в приложении подтверждайте событие после успешной обработки и обеспечьте дедупликацию в используемом хранилище уведомлений.

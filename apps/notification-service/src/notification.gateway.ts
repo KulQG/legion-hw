@@ -9,9 +9,10 @@ import {
 import { PinoLogger } from 'nestjs-pino';
 import { Server, type Socket } from 'socket.io';
 import { JwtConfigType, USER_FROM_TOKEN } from '../../../lib/common/types';
-import { TransferEventDto } from '../../../lib/common/dto/transfer-event.dto';
 import { Inject } from '@nestjs/common';
 import jwtConfig from '../../../lib/common/configs/jwt.config';
+import { NotificationPayload } from './types';
+import { NotificationRepository } from './notification.repository';
 
 interface UserSocket extends Socket {
   data: USER_FROM_TOKEN;
@@ -26,6 +27,7 @@ export class NotificationGateway
     private readonly jwtService: JwtService,
     @Inject(jwtConfig.KEY)
     private readonly configService: JwtConfigType,
+    private readonly repository: NotificationRepository,
   ) {
     this.logger.setContext(NotificationGateway.name);
   }
@@ -71,28 +73,79 @@ export class NotificationGateway
     await client.join(client.data.userId);
     this.logger.info(`Client id: ${client.id} connected`);
     this.logger.debug(`Number of connected clients: ${sockets.size}`);
+
+    try {
+      await this.sendUnreceivedNotifications(client);
+    } catch (e: unknown) {
+      this.logger.error(
+        { err: e, userId: client.data.userId },
+        'Failed to deliver pending notification',
+      );
+    }
   }
 
   handleDisconnect(client: Socket) {
     this.logger.info(`Cliend id:${client.id} disconnected`);
   }
 
-  sendNotification(transferData: TransferEventDto) {
-    this.io.to(transferData.userFrom).emit('notification', {
-      data: {
-        type: 'transfer-sent',
-        id: transferData.id,
-        sum: transferData.sum,
-        to: transferData.userTo,
-      },
+  sendNotification(
+    notificationId: string,
+    notificationData: NotificationPayload,
+    userId: string,
+  ): Promise<boolean> {
+    return new Promise((resolve) => {
+      this.io
+        .to(userId)
+        .timeout(5000)
+        .emit(
+          'notification',
+          {
+            id: notificationId,
+            data: notificationData,
+          },
+          (_err: Error | null, responses: unknown[]) => {
+            resolve(responses.some((response) => response === true));
+          },
+        );
     });
-    this.io.to(transferData.userTo).emit('notification', {
-      data: {
-        type: 'transfer-received',
-        id: transferData.id,
-        sum: transferData.sum,
-        from: transferData.userFrom,
-      },
-    });
+  }
+
+  async sendUnreceivedNotifications(client: UserSocket) {
+    const { userId } = client.data;
+    const notifications =
+      await this.repository.getUnreceivedNotifications(userId);
+
+    const batchSize = 10;
+
+    for (let offset = 0; offset < notifications.length; offset += batchSize) {
+      if (!client.connected) break;
+
+      const batch = notifications.slice(offset, offset + batchSize);
+
+      const results = await Promise.allSettled(
+        batch.map(async (notification) => {
+          const received = await this.sendNotification(
+            notification.id,
+            notification.data,
+            userId,
+          );
+
+          if (received)
+            await this.repository.markReceived(notification.id, userId);
+        }),
+      );
+
+      results.forEach((result, index) => {
+        if (result.status === 'rejected') {
+          this.logger.error(
+            {
+              err: result.reason as unknown,
+              notificationId: batch[index].id,
+            },
+            'Notification delivery failed',
+          );
+        }
+      });
+    }
   }
 }

@@ -10,15 +10,21 @@ import { getRequestId } from '../../../lib/common/helpers/get-request-id';
 import appConfig from '../config/app.config';
 import kafkaConfig from '../../../lib/common/configs/kafka.config';
 import jwtConfig from '../../../lib/common/configs/jwt.config';
-import { NotificationDeduplicatorService } from './notification-deduplicator.service';
-import redisConfig from '../../../lib/common/configs/redis.config';
 import { NotificationsService } from './notification-service.service';
+import mongoConfig from '../config/mongo.config';
+import { MongooseModule } from '@nestjs/mongoose';
+import { MongoConfigType } from '../config/notification-service-configs.types';
+import {
+  Notification,
+  NotificationSchema,
+} from './providers/mongo/notification.schema';
+import { NotificationRepository } from './notification.repository';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
-      load: [appConfig, kafkaConfig, jwtConfig, redisConfig],
+      load: [appConfig, mongoConfig, kafkaConfig, jwtConfig],
     }),
     JwtModule.register({}),
     ClsModule.forRoot({
@@ -30,12 +36,21 @@ import { NotificationsService } from './notification-service.service';
       },
     }),
     LoggerModule.forRoot(LOGGER_CONFIG),
+    MongooseModule.forRootAsync({
+      inject: [mongoConfig.KEY],
+      useFactory: (config: MongoConfigType) => ({
+        uri: config.url,
+      }),
+    }),
+    MongooseModule.forFeature([
+      { name: Notification.name, schema: NotificationSchema },
+    ]),
   ],
   controllers: [NotificationServiceController],
   providers: [
     NotificationGateway,
-    NotificationDeduplicatorService,
     NotificationsService,
+    NotificationRepository,
   ],
 })
 export class NotificationServiceModule {}

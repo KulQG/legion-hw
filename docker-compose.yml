@@ -50,18 +50,15 @@ services:
       KAFKA_INTER_BROKER_LISTENER_NAME: INTERNAL
       KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
 
-      # кворум контроллеров. Один узел — один голос
       KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka:29093
 
-      # обычные параметры
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
       KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
       KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
       KAFKA_AUTO_CREATE_TOPICS_ENABLE: 'true'
 
       CLUSTER_ID: 'q1Sh-9_ISia_zwGINzRvyQ'
-  # админка для того, чтобы можно было посмотреть на UI Kafka
-  # Будет октрываться по адресу http://localhost:8090/ui/clusters/local/broker
+  # http://localhost:8090/ui/clusters/local/broker
   kafka-ui:
     image: provectuslabs/kafka-ui:latest
     depends_on: [kafka]
@@ -71,6 +68,17 @@ services:
       KAFKA_CLUSTERS_0_NAME: local
       KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:29092
 
+  mongodb:
+    image: mongo:latest
+    container_name: mongodb
+    ports:
+      - '27017:27017'
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_USER}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_PASSWORD}
+    volumes:
+      - mongodata:/data/db
+
 networks:
   app_network: {}
 
@@ -78,3 +86,4 @@ volumes:
   pgdata:
   redisdata:
   miniodata:
+  mongodata:

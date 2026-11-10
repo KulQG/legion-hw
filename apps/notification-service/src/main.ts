@@ -31,6 +31,9 @@ async function bootstrap() {
       consumer: {
         groupId: 'notification-service-group',
       },
+      run: {
+        autoCommit: false,
+      },
     },
   });
 

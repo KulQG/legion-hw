@@ -8,6 +8,7 @@ const schema = z.object({
     .min(1)
     .max(65535)
     .default(8081),
+  MONGO_URL: z.string().trim().min(1),
 });
 
 export default registerAs('app', () => {
