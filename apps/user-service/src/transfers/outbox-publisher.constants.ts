@@ -1,0 +1,15 @@
+import { CronExpression } from '@nestjs/schedule';
+
+export const OUTBOX_PUBLISH_CRON = CronExpression.EVERY_5_SECONDS;
+export const OUTBOX_MAX_MESSAGES_PER_RUN = 50;
+
+export const KAFKA_SEND_TIMEOUT_MS = 10_000;
+export const KAFKA_RETRY_COUNT = 2;
+export const KAFKA_RETRY_DELAY_MS = 2_000;
+
+export const MAX_KAFKA_SEND_TIME_MS =
+  (KAFKA_RETRY_COUNT + 1) * KAFKA_SEND_TIMEOUT_MS +
+  KAFKA_RETRY_COUNT * KAFKA_RETRY_DELAY_MS;
+
+export const OUTBOX_LEASE_BUFFER_MS = 26_000;
+export const OUTBOX_LEASE_MS = MAX_KAFKA_SEND_TIME_MS + OUTBOX_LEASE_BUFFER_MS;
